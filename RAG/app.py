@@ -1,4 +1,4 @@
-from executor import execuute_sql
+from executor import execuute_sql,save_history
 from genrator import genrate_sql
 
 question=input('ASK : ')
@@ -7,6 +7,7 @@ print("\nGenerated SQL:\n")
 print(sql)
 
 df,t=execuute_sql(sql)
+save=save_history(question,sql,t)
 
 print("\nResult:\n")
 print(df)

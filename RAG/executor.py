@@ -5,6 +5,7 @@ import time
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 from dotenv import load_dotenv
+from sqlalchemy import text
 load_dotenv()
 
 DB_URL = URL.create(
@@ -43,3 +44,16 @@ def execuute_sql(sql:str):
     execution_time=round(time.time()-start,3)
     return df,execution_time
 
+
+def save_history(query,sql,execution_time):
+    query = text("""
+        INSERT INTO query_history
+        (question, generated_sql, execution_time)
+        VALUES (:q, :s, :t)
+    """)
+    with engine.begin() as conn:
+        conn.execute(query,{
+            'q':query,
+            's':sql,
+            't':execution_time
+        })
