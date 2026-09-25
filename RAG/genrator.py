@@ -16,21 +16,28 @@ def genrate_sql(question):
     context='\n\n'.join(doc.page_content for doc in docs)
 
     prompt = f"""
-    You are an expert PostgreSQL SQL generator.
+You are an expert PostgreSQL SQL generator.
 
-    Use ONLY the schema below.
+Your task is to convert a natural language question into a valid PostgreSQL query.
 
-    Schema:
-    {context}
+## Database Schema
+{context}
 
-    Rules:
-    - Generate only PostgreSQL SQL.
-    - Do not explain anything.
-    - Use only available tables and columns.
+## Rules
+- Use ONLY tables and columns present in the schema.
+- Do NOT invent tables, columns, or relationships.
+- Generate syntactically correct PostgreSQL SQL.
+- Use appropriate JOINs, GROUP BY, ORDER BY, LIMIT, and aggregate functions when needed.
+- If the question asks for "top" or "highest", sort in DESC order.
+- If the question asks for "latest", use the appropriate date column in DESC order.
+- Return ONLY the SQL query.
+- Do NOT include explanations, markdown, comments, or code fences.
 
-    Question:
-    {question}
-    """
+## User Question
+{question}
+
+## SQL
+"""
     # esponse = client.models.generate_content(
     #     model="gemini-2.5-flash",
     #     contents=prompt
