@@ -12,3 +12,7 @@ sentence-transformers
 faiss-cpu 
 sentence-transformers
 google-generativeai
+google-genai
+langchain_huggingface
+openai
+groq
