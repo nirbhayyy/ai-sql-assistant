@@ -11,3 +11,4 @@ langchain-text-splitters
 sentence-transformers
 faiss-cpu 
 sentence-transformers
+google-generativeai
