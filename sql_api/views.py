@@ -6,6 +6,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from RAG.executor import engine
 from sqlalchemy import text
+from .pagination import QueryPagination
+from .util import detect_chart
 
 
 @api_view(['POST'])
@@ -17,13 +19,19 @@ def query_api(request):
     sql=genrate_sql(question)
     df,time=execuute_sql(sql)
     save_history(question,sql,time)
+    rows=df.to_dict(orient='records')
+    chart=detect_chart(df)
+    paginator=QueryPagination()
+    page=paginator.paginate_queryset(rows,request)
 
-    return Response({
+
+    return paginator.get_paginated_response({
         'quesion':question,
         'sql':sql,
         'execution_time':time,
-        'row_count':len(df),
-        'data':df.to_dict(orient='records')
+        'row_count':len(rows),
+        'chart':chart,
+        'data':page
     })
 
 def home(request):

@@ -1,6 +1,8 @@
 (function () {
     "use strict";
 
+    const PAGE_SIZE = 10;
+
     const form = document.getElementById("ask-form");
     const questionEl = document.getElementById("question");
     const askBtn = document.getElementById("ask-btn");
@@ -18,6 +20,9 @@
     const rowsEl = document.getElementById("rows");
     const timeEl = document.getElementById("time");
 
+    const chartPanel = document.getElementById("chart-panel");
+    let chartInstance = null;
+
     const resultsPanel = document.getElementById("results-panel");
     const tableContainer = document.getElementById("table-container");
     const exportBtn = document.getElementById("export-csv");
@@ -28,8 +33,17 @@
     const clearHistoryBtn = document.getElementById("clear-history");
     const exampleChips = document.getElementById("examples");
 
+    const paginationEl = document.querySelector(".pagination");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const pageNoEl = document.getElementById("pageNo");
+
     let currentRows = [];
     let sortState = { col: null, dir: 1 };
+
+    let currentQuestion = "";
+    let currentPage = 1;
+    let totalPages = 1;
 
     // ---------- helpers ----------
 
@@ -50,7 +64,9 @@
         hide(errorPanel);
         hide(sqlPanel);
         hide(statsRow);
+        hide(chartPanel);
         hide(resultsPanel);
+        hide(paginationEl);
     }
 
     function highlightSql(sql) {
@@ -122,7 +138,7 @@
             btn.addEventListener("click", () => {
                 questionEl.value = item.question;
                 autoGrow();
-                runQuery(item.question);
+                runQuery(item.question, 1);
             });
 
             li.appendChild(btn);
@@ -144,7 +160,7 @@
         if (!chip) return;
         questionEl.value = chip.textContent;
         autoGrow();
-        runQuery(chip.textContent);
+        runQuery(chip.textContent, 1);
     });
 
     // ---------- table rendering (XSS-safe: text content, not innerHTML) ----------
@@ -242,10 +258,78 @@
         }
     });
 
+    // ---------- chart ----------
+
+    function renderChart(chartData) {
+        if (!chartData) {
+            hide(chartPanel);
+            if (chartInstance) {
+                chartInstance.destroy();
+                chartInstance = null;
+            }
+            return;
+        }
+
+        show(chartPanel);
+
+        if (typeof Chart === "undefined") {
+            console.error("Chart.js failed to load; skipping chart render.");
+            hide(chartPanel);
+            return;
+        }
+
+        const ctx = document.getElementById("chart");
+
+        if (chartInstance) {
+            chartInstance.destroy();
+        }
+
+        chartInstance = new Chart(ctx, {
+            type: chartData.type,
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: chartData.y_label,
+                    data: chartData.values,
+                    borderWidth: 1,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                },
+            },
+        });
+    }
+
+    // ---------- pagination ----------
+
+    function renderPagination() {
+        if (totalPages <= 1) {
+            hide(paginationEl);
+            return;
+        }
+        show(paginationEl);
+        pageNoEl.textContent = `Page ${currentPage} of ${totalPages}`;
+        prevBtn.disabled = currentPage <= 1;
+        nextBtn.disabled = currentPage >= totalPages;
+    }
+
+    prevBtn.addEventListener("click", () => {
+        if (currentPage > 1) runQuery(currentQuestion, currentPage - 1);
+    });
+
+    nextBtn.addEventListener("click", () => {
+        if (currentPage < totalPages) runQuery(currentQuestion, currentPage + 1);
+    });
+
     // ---------- query execution ----------
 
-    async function runQuery(question) {
+    async function runQuery(question, page = 1) {
         if (!question || !question.trim()) return;
+        const trimmed = question.trim();
 
         hide(emptyState);
         resetPanels();
@@ -253,36 +337,55 @@
         sortState = { col: null, dir: 1 };
 
         try {
-            const response = await fetch("/api/query/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ question: question.trim() }),
-            });
+            const response = await fetch(
+                `/api/query/?page=${page}&page_size=${PAGE_SIZE}`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ question: trimmed }),
+                }
+            );
 
             if (!response.ok) {
                 throw new Error("Request failed with status " + response.status);
             }
 
-            const data = await response.json();
+            const payload = await response.json();
 
-            if (data.error) {
-                throw new Error(data.error);
+            if (payload.error) {
+                throw new Error(payload.error);
             }
 
-            loadHistory();
+            // DRF's paginator wraps the view's own payload inside a
+            // { count, next, previous, results } envelope. The actual
+            // sql/execution_time/data fields live in `results`.
+            const data = payload.results ?? payload;
+            const totalCount = payload.count ?? data.row_count ?? (data.data || []).length;
+
+            currentQuestion = trimmed;
+            currentPage = page;
+            totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+
+            // Only refresh sidebar history on a fresh question (page 1),
+            // not when the user is just paging through existing results.
+            if (page === 1) loadHistory();
 
             if (data.sql) {
                 sqlCode.innerHTML = highlightSql(data.sql);
                 show(sqlPanel);
             }
 
-            rowsEl.textContent = formatNumber(data.row_count ?? (data.data || []).length);
+            rowsEl.textContent = formatNumber(totalCount);
             timeEl.textContent = formatTime(data.execution_time ?? 0);
             show(statsRow);
+
+            renderChart(data.chart || null);
 
             currentRows = data.data || [];
             renderTable(currentRows);
             show(resultsPanel);
+
+            renderPagination();
         } catch (err) {
             errorMessage.textContent = err.message || "The request could not be completed. Please try again.";
             show(errorPanel);
@@ -295,7 +398,7 @@
 
     form.addEventListener("submit", (e) => {
         e.preventDefault();
-        runQuery(questionEl.value);
+        runQuery(questionEl.value, 1);
     });
 
     questionEl.addEventListener("input", autoGrow);
@@ -303,20 +406,22 @@
     questionEl.addEventListener("keydown", (e) => {
         if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
             e.preventDefault();
-            runQuery(questionEl.value);
+            runQuery(questionEl.value, 1);
         }
     });
 
     clearBtn.addEventListener("click", () => {
         questionEl.value = "";
-        autoGrow();
-        questionEl.focus();
+            autoGrow();
+            questionEl.focus();
         resetPanels();
+        renderChart(null);
         show(emptyState);
     });
 
     // ---------- init ----------
 
+    hide(paginationEl);
     loadHistory();
     autoGrow();
 })();

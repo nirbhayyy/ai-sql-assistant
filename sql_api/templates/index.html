@@ -92,12 +92,27 @@
                 </div>
             </div>
 
+            <div class="panel" id="chart-panel" hidden>
+                <div class="panel-head">
+                    <h3>Chart</h3>
+                </div>
+                <div id="chart-container">
+                    <canvas id="chart"></canvas>
+                </div>
+            </div>
+
             <div class="panel" id="results-panel" hidden>
                 <div class="panel-head">
                     <h3>Results</h3>
                     <button class="text-btn" id="export-csv" type="button">Export CSV</button>
                 </div>
                 <div id="table-container"></div>
+            </div>
+
+            <div class="pagination" hidden>
+                <button id="prevBtn" type="button">Previous</button>
+                <span id="pageNo"></span>
+                <button id="nextBtn" type="button">Next</button>
             </div>
 
             <div class="empty-state" id="empty-state">
@@ -110,6 +125,7 @@
 
 </div>
 
+<script src="{% static 'js/chart.umd.min.js' %}"></script>
 <script src="{% static 'js/app.js' %}"></script>
 </body>
 </html>
