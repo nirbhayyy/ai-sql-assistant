@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import query_api
+from .views import query_api,home
 
 urlpatterns = [
-    path('query/',query_api),
+    path('',home,name='home'),
+    path('query/',query_api,name='query'),
 ]

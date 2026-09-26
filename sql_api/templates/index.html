@@ -1,0 +1,115 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SQL Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<div class="app">
+
+    <header class="app-header">
+        <div class="brand">
+            <span class="brand-mark">SQL</span>
+            <div>
+                <h1>SQL Assistant</h1>
+                <p>Ask a question in plain English. Get the query and the data.</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="workbench">
+
+        <aside class="rail" id="rail">
+            <div class="rail-section">
+                <h2>Try asking</h2>
+                <div class="chip-list" id="examples">
+                    <button class="chip" type="button">Top 10 customers by revenue</button>
+                    <button class="chip" type="button">Orders placed last 7 days</button>
+                    <button class="chip" type="button">Products with no sales this month</button>
+                    <button class="chip" type="button">Average order value by region</button>
+                </div>
+            </div>
+
+            <div class="rail-section">
+                <div class="rail-section-head">
+                    <h2>History</h2>
+                    <button class="text-btn" id="clear-history" type="button">Clear</button>
+                </div>
+                <ul class="history-list" id="history-list">
+                    <li class="empty-hint">Your recent questions will show up here.</li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="main">
+
+            <form class="ask-form" id="ask-form">
+                <label class="visually-hidden" for="question">Ask a question about your data</label>
+                <textarea
+                    id="question"
+                    rows="1"
+                    placeholder="e.g. Which products had the highest returns last quarter?"
+                    autocomplete="off"
+                ></textarea>
+                <div class="ask-actions">
+                    <span class="hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> to run</span>
+                    <button type="button" class="btn-ghost" id="clear-btn">Clear</button>
+                    <button type="submit" class="btn-primary" id="ask-btn">
+                        <span id="ask-btn-label">Run</span>
+                    </button>
+                </div>
+            </form>
+
+            <div class="panel" id="error-panel" hidden>
+                <div class="error-box">
+                    <strong>Something went wrong</strong>
+                    <p id="error-message"></p>
+                </div>
+            </div>
+
+            <div class="panel" id="sql-panel" hidden>
+                <div class="panel-head">
+                    <h3>Generated SQL</h3>
+                    <button class="text-btn" id="copy-sql" type="button">Copy</button>
+                </div>
+                <pre id="sql"><code></code></pre>
+            </div>
+
+            <div class="stats-row" id="stats-row" hidden>
+                <div class="stat">
+                    <span class="stat-value" id="rows">0</span>
+                    <span class="stat-label">Rows returned</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="time">0.000s</span>
+                    <span class="stat-label">Execution time</span>
+                </div>
+            </div>
+
+            <div class="panel" id="results-panel" hidden>
+                <div class="panel-head">
+                    <h3>Results</h3>
+                    <button class="text-btn" id="export-csv" type="button">Export CSV</button>
+                </div>
+                <div id="table-container"></div>
+            </div>
+
+            <div class="empty-state" id="empty-state">
+                <p>Ask a question above, or pick one from the left, to see the query and results here.</p>
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+
+<script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>

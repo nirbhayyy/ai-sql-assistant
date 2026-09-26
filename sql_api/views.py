@@ -23,3 +23,6 @@ def query_api(request):
         'row_count':len(df),
         'data':df.to_dict(orient='records')
     })
+
+def home(request):
+    return render(request, 'index.html')
