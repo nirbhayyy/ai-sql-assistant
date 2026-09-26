@@ -1,7 +1,7 @@
 import os
 from google import genai
 from dotenv import load_dotenv
-from retriever import retrieve_schema
+from .retriever import retrieve_schema
 from openai import OpenAI
 from groq import Groq
 load_dotenv()

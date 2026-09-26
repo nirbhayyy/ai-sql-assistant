@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .serializers import Queriserializer
+from .serializers import QuerySerializer
 from RAG.genrator import genrate_sql
 from RAG.executor import execuute_sql,save_history
 from rest_framework.decorators import api_view
@@ -8,10 +8,10 @@ from rest_framework.response import Response
 
 @api_view(['POST'])
 def query_api(request):
-    serializer=Queriserializer(data=request.data)
+    serializer=QuerySerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    question=serializer._validated_data['Question']
+    question=serializer.validated_data['question']
     sql=genrate_sql(question)
     df,time=execuute_sql(sql)
     save_history(question,sql,time)
