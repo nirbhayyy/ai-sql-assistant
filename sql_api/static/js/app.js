@@ -28,9 +28,6 @@
     const clearHistoryBtn = document.getElementById("clear-history");
     const exampleChips = document.getElementById("examples");
 
-    const HISTORY_KEY = "sql_assistant_history";
-    const MAX_HISTORY = 12;
-
     let currentRows = [];
     let sortState = { col: null, dir: 1 };
 
@@ -77,29 +74,24 @@
         return (Number.isFinite(n) ? n.toFixed(3) : t) + "s";
     }
 
-    // ---------- history ----------
+    // ---------- history (server-backed) ----------
 
-    function loadHistory() {
+    async function loadHistory() {
         try {
-            return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+            const response = await fetch("/api/history/");
+            if (!response.ok) throw new Error("history request failed");
+            const data = await response.json();
+            renderHistory(data);
         } catch (e) {
-            return [];
+            // Leave whatever is currently shown; history is a convenience,
+            // not something worth surfacing an error panel for.
         }
     }
 
-    function saveToHistory(question) {
-        let history = loadHistory().filter((q) => q !== question);
-        history.unshift(question);
-        history = history.slice(0, MAX_HISTORY);
-        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-        renderHistory();
-    }
-
-    function renderHistory() {
-        const history = loadHistory();
+    function renderHistory(items) {
         historyList.innerHTML = "";
 
-        if (history.length === 0) {
+        if (!items || items.length === 0) {
             const li = document.createElement("li");
             li.className = "empty-hint";
             li.textContent = "Your recent questions will show up here.";
@@ -107,26 +99,44 @@
             return;
         }
 
-        history.forEach((q) => {
+        items.forEach((item) => {
             const li = document.createElement("li");
             const btn = document.createElement("button");
-            btn.className = "history-item";
             btn.type = "button";
-            btn.textContent = q;
-            btn.title = q;
+            btn.className = "history-item";
+            btn.title = item.question;
+
+            const q = document.createElement("span");
+            q.className = "history-question";
+            q.textContent = item.question;
+
+            const sql = document.createElement("code");
+            sql.className = "history-sql";
+            sql.textContent = item.generated_sql;
+
+            const time = document.createElement("span");
+            time.className = "history-time";
+            time.textContent = formatTime(item.execution_time ?? 0);
+
+            btn.append(q, sql, time);
             btn.addEventListener("click", () => {
-                questionEl.value = q;
+                questionEl.value = item.question;
                 autoGrow();
-                runQuery(q);
+                runQuery(item.question);
             });
+
             li.appendChild(btn);
             historyList.appendChild(li);
         });
     }
 
-    clearHistoryBtn.addEventListener("click", () => {
-        localStorage.removeItem(HISTORY_KEY);
-        renderHistory();
+    clearHistoryBtn.addEventListener("click", async () => {
+        try {
+            await fetch("/api/history/", { method: "DELETE" });
+        } catch (e) {
+            /* if there's no DELETE route yet, this just no-ops server-side */
+        }
+        loadHistory();
     });
 
     exampleChips.addEventListener("click", (e) => {
@@ -259,7 +269,7 @@
                 throw new Error(data.error);
             }
 
-            saveToHistory(question.trim());
+            loadHistory();
 
             if (data.sql) {
                 sqlCode.innerHTML = highlightSql(data.sql);
@@ -307,6 +317,6 @@
 
     // ---------- init ----------
 
-    renderHistory();
+    loadHistory();
     autoGrow();
 })();
