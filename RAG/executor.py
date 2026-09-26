@@ -45,7 +45,7 @@ def execuute_sql(sql:str):
     return df,execution_time
 
 
-def save_history(query,sql,execution_time):
+def save_history(quesion,sql,execution_time):
     query = text("""
         INSERT INTO query_history
         (question, generated_sql, execution_time)
@@ -53,7 +53,7 @@ def save_history(query,sql,execution_time):
     """)
     with engine.begin() as conn:
         conn.execute(query,{
-            'q':query,
+            'q':quesion,
             's':sql,
             't':execution_time
         })
