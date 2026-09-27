@@ -18,38 +18,51 @@ def detect_chart(df:pd.DataFrame):
     if not is_numeric_dtype(df[y]):
        return None
 
+    
+    chart={
+                "labels": df[x].astype(str).tolist(),
+                "values": df[y].tolist(),
+                "x_label": x.replace('_',' ').title(),
+                "y_label": y.replace('_',' ').title(),
+                "title":f"{y.replace('_',' ').title()} by {x.replace('_',' ').title()}"
+        }
+    
+    # ---------- LINE ----------
+    if "year" in x.lower() or "month" in x.lower():
+        chart["type"] = "line"
+        return chart
+
     if is_datetime64_any_dtype(df[x]):
-        return {
-            "type": "line",
-            "labels": df[x].dt.strftime("%Y-%m-%d").tolist(),
-            "values": df[y].tolist(),
-            "x_label": x,
-            "y_label": y
-        }
-    if 'year' in x.lower() or 'month' in x.lower():
-        return {
-            "type": "line",
-            "labels": df[x].astype(str).tolist(),
-            "values": df[y].tolist(),
-            "x_label": x,
-            "y_label": y
-        }
+        chart["type"] = "line"
+        chart["labels"] = df[x].dt.strftime("%Y-%m-%d").tolist()
+        return chart
 
-    unique=df[x].nunique()
+    # ---------- PIE ----------
+    if df[x].nunique() <= 8:
+        chart["type"] = "pie"
+        return chart
 
-    if unique<=8:
-        return {
-            "type": "pie",
-            "labels": df[x].astype(str).tolist(),
-            "values": df[y].tolist(),
-            "x_label": x,
-            "y_label": y
-        }
+    # ---------- BAR ----------
+    chart["type"] = "bar"
+    return chart
 
-    return {
-        "type": "bar",
-        "labels": df[x].astype(str).tolist(),
-        "values": df[y].tolist(),
-        "x_label": x,
-        "y_label": y
-    }
+    
+
+def genrate_insides(df:pd.DataFrame):
+    if df.empty:
+      return None
+    cols=df.columns
+    if len(cols)==1:
+      value=df.iloc[0,0]
+      return f"{cols[0].replace('_',' ').title()} is {value}."
+    if len(cols)==2:
+      x,y=cols
+      if pd.api.types.is_numeric_dtype(df[y]):
+         highest=df.iloc[df[y].idxmax()]
+         lowest=df.iloc[df[y].idxmin()]
+         return (
+                f"{highest[x]} has the highest {y.replace('_',' ')} "
+                f"({highest[y]}), while {lowest[x]} has the lowest "
+                f"({lowest[y]})."
+            )
+    return f"The query returned {len(df)} rows."

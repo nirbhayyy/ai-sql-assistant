@@ -3,120 +3,231 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SQL Assistant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI SQL Assistant</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
+
 <body>
+
+<!-- ================= HEADER (full-width bar, sits above the content column) ================= -->
+
+<header class="app-header">
+    <div class="brand">
+        <span class="brand-mark">SQL</span>
+
+        <div>
+            <h1>AI SQL Assistant</h1>
+            <p>Ask questions in plain English</p>
+        </div>
+    </div>
+</header>
 
 <div class="app">
 
-    <header class="app-header">
-        <div class="brand">
-            <span class="brand-mark">SQL</span>
-            <div>
-                <h1>SQL Assistant</h1>
-                <p>Ask a question in plain English. Get the query and the data.</p>
-            </div>
-        </div>
-    </header>
-
     <div class="workbench">
 
-        <aside class="rail" id="rail">
+        <!-- ================= SIDEBAR ================= -->
+
+        <aside class="rail">
+
             <div class="rail-section">
-                <h2>Try asking</h2>
+                <h2>Example Queries</h2>
+
                 <div class="chip-list" id="examples">
-                    <button class="chip" type="button">Top 10 customers by revenue</button>
-                    <button class="chip" type="button">Orders placed last 7 days</button>
-                    <button class="chip" type="button">Products with no sales this month</button>
-                    <button class="chip" type="button">Average order value by region</button>
+                    <button class="chip" type="button">Count customers in each city</button>
+                    <button class="chip" type="button">Show customer registrations by year</button>
+                    <button class="chip" type="button">Show customer distribution by city</button>
+                    <button class="chip" type="button">How many customers are there?</button>
                 </div>
             </div>
 
             <div class="rail-section">
+
                 <div class="rail-section-head">
                     <h2>History</h2>
-                    <button class="text-btn" id="clear-history" type="button">Clear</button>
+                    <button id="clear-history" class="text-btn" type="button">
+                        Clear
+                    </button>
                 </div>
-                <ul class="history-list" id="history-list">
-                    <li class="empty-hint">Your recent questions will show up here.</li>
+
+                <ul id="history-list" class="history-list">
+                    <li class="empty-hint">
+                        Recent queries will appear here.
+                    </li>
                 </ul>
+
             </div>
+
         </aside>
+
+        <!-- ================= MAIN ================= -->
 
         <main class="main">
 
-            <form class="ask-form" id="ask-form">
-                <label class="visually-hidden" for="question">Ask a question about your data</label>
+            <!-- Ask Form -->
+
+            <form id="ask-form" class="ask-form">
+
                 <textarea
                     id="question"
                     rows="1"
-                    placeholder="e.g. Which products had the highest returns last quarter?"
-                    autocomplete="off"
+                    placeholder="e.g. Count customers in each city"
                 ></textarea>
+
                 <div class="ask-actions">
-                    <span class="hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> to run</span>
-                    <button type="button" class="btn-ghost" id="clear-btn">Clear</button>
-                    <button type="submit" class="btn-primary" id="ask-btn">
+
+                    <span class="hint">
+                        <kbd>Ctrl</kbd> + <kbd>Enter</kbd>
+                    </span>
+
+                    <button id="clear-btn" type="button" class="btn-ghost">
+                        Clear
+                    </button>
+
+                    <button id="ask-btn" type="submit" class="btn-primary">
                         <span id="ask-btn-label">Run</span>
                     </button>
+
                 </div>
+
             </form>
 
-            <div class="panel" id="error-panel" hidden>
+            <!-- Error -->
+
+            <div id="error-panel" class="panel" hidden>
+
                 <div class="error-box">
                     <strong>Something went wrong</strong>
                     <p id="error-message"></p>
                 </div>
+
             </div>
 
-            <div class="panel" id="sql-panel" hidden>
+            <!-- SQL -->
+
+            <div id="sql-panel" class="panel" hidden>
+
                 <div class="panel-head">
+
                     <h3>Generated SQL</h3>
-                    <button class="text-btn" id="copy-sql" type="button">Copy</button>
+
+                    <button id="copy-sql" class="text-btn" type="button">
+                        Copy
+                    </button>
+
                 </div>
+
                 <pre id="sql"><code></code></pre>
+
             </div>
 
-            <div class="stats-row" id="stats-row" hidden>
+            <!-- Stats -->
+
+            <div id="stats-row" class="stats-row" hidden>
+
                 <div class="stat">
-                    <span class="stat-value" id="rows">0</span>
-                    <span class="stat-label">Rows returned</span>
+                    <span id="rows" class="stat-value">0</span>
+                    <span class="stat-label">Rows</span>
                 </div>
+
                 <div class="stat">
-                    <span class="stat-value" id="time">0.000s</span>
-                    <span class="stat-label">Execution time</span>
+                    <span id="time" class="stat-value">0 ms</span>
+                    <span class="stat-label">Execution</span>
                 </div>
+
             </div>
 
-            <div class="panel" id="chart-panel" hidden>
+            <!-- ================= CHART ================= -->
+
+            <div id="chart-panel" class="panel" hidden>
+
                 <div class="panel-head">
-                    <h3>Chart</h3>
+                    <h3 id="chart-title">Analytics</h3>
                 </div>
+
                 <div id="chart-container">
                     <canvas id="chart"></canvas>
                 </div>
+
             </div>
 
-            <div class="panel" id="results-panel" hidden>
+            <!-- ================= KPI ================= -->
+
+            <div id="kpi-panel" class="panel" hidden>
+
                 <div class="panel-head">
-                    <h3>Results</h3>
-                    <button class="text-btn" id="export-csv" type="button">Export CSV</button>
+                    <h3>Result</h3>
                 </div>
+
+                <div class="kpi-display">
+
+                    <h1 id="kpi-value">0</h1>
+
+                    <p id="kpi-label">Metric</p>
+
+                </div>
+
+            </div>
+
+            <!-- ================= AI INSIGHT ================= -->
+
+            <div id="insight-panel" class="panel" hidden>
+
+                <div class="panel-head">
+                    <h3>AI Insight</h3>
+                </div>
+
+                <p id="insightText"></p>
+
+            </div>
+
+            <!-- ================= TABLE ================= -->
+
+            <div id="results-panel" class="panel" hidden>
+
+                <div class="panel-head">
+
+                    <h3>Results</h3>
+
+                    <button id="export-csv" class="text-btn" type="button">
+                        Export CSV
+                    </button>
+
+                </div>
+
                 <div id="table-container"></div>
+
             </div>
 
-            <div class="pagination" hidden>
-                <button id="prevBtn" type="button">Previous</button>
+            <!-- Pagination -->
+
+            <div id="pagination" class="pagination" hidden>
+
+                <button id="prevBtn" type="button">
+                    Previous
+                </button>
+
                 <span id="pageNo"></span>
-                <button id="nextBtn" type="button">Next</button>
+
+                <button id="nextBtn" type="button">
+                    Next
+                </button>
+
             </div>
 
-            <div class="empty-state" id="empty-state">
-                <p>Ask a question above, or pick one from the left, to see the query and results here.</p>
+            <!-- Empty -->
+
+            <div id="empty-state" class="empty-state">
+
+                <p>
+                    Ask a SQL question to begin.
+                </p>
+
             </div>
 
         </main>
@@ -125,7 +236,13 @@
 
 </div>
 
-<script src="{% static 'js/chart.umd.min.js' %}"></script>
+<!-- ================= SCRIPTS ================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="{% static 'js/chartt.js' %}"></script>
+
 <script src="{% static 'js/app.js' %}"></script>
+
 </body>
 </html>

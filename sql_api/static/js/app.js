@@ -1,427 +1,374 @@
 (function () {
     "use strict";
 
-    const PAGE_SIZE = 10;
+    const PAGE_SIZE = 5;
 
+    // ---------- DOM ----------
     const form = document.getElementById("ask-form");
-    const questionEl = document.getElementById("question");
+    const question = document.getElementById("question");
+
     const askBtn = document.getElementById("ask-btn");
-    const askBtnLabel = document.getElementById("ask-btn-label");
+    const askLabel = document.getElementById("ask-btn-label");
     const clearBtn = document.getElementById("clear-btn");
+
+    const sqlPanel = document.getElementById("sql-panel");
+    const sqlCode = document.querySelector("#sql code");
+    const copyBtn = document.getElementById("copy-sql");
+
+    const statsRow = document.getElementById("stats-row");
+    const rows = document.getElementById("rows");
+    const time = document.getElementById("time");
+
+    const insightPanel = document.getElementById("insight-panel");
+    const insightText = document.getElementById("insightText");
+
+    const resultPanel = document.getElementById("results-panel");
+    const tableContainer = document.getElementById("table-container");
 
     const errorPanel = document.getElementById("error-panel");
     const errorMessage = document.getElementById("error-message");
 
-    const sqlPanel = document.getElementById("sql-panel");
-    const sqlCode = document.querySelector("#sql code");
-    const copySqlBtn = document.getElementById("copy-sql");
-
-    const statsRow = document.getElementById("stats-row");
-    const rowsEl = document.getElementById("rows");
-    const timeEl = document.getElementById("time");
-
-    const chartPanel = document.getElementById("chart-panel");
-    let chartInstance = null;
-
-    const resultsPanel = document.getElementById("results-panel");
-    const tableContainer = document.getElementById("table-container");
-    const exportBtn = document.getElementById("export-csv");
-
-    const emptyState = document.getElementById("empty-state");
+    const pagination = document.getElementById("pagination");
+    const prev = document.getElementById("prevBtn");
+    const next = document.getElementById("nextBtn");
+    const pageNo = document.getElementById("pageNo");
 
     const historyList = document.getElementById("history-list");
-    const clearHistoryBtn = document.getElementById("clear-history");
-    const exampleChips = document.getElementById("examples");
-
-    const paginationEl = document.querySelector(".pagination");
-    const prevBtn = document.getElementById("prevBtn");
-    const nextBtn = document.getElementById("nextBtn");
-    const pageNoEl = document.getElementById("pageNo");
-
-    let currentRows = [];
-    let sortState = { col: null, dir: 1 };
+    const chips = document.getElementById("examples");
 
     let currentQuestion = "";
     let currentPage = 1;
     let totalPages = 1;
+    let currentRows = [];
 
     // ---------- helpers ----------
 
+    const hide = el => el && (el.hidden = true);
+    const show = el => el && (el.hidden = false);
+
+    function setLoading(v) {
+        askBtn.disabled = v;
+        askLabel.textContent = v ? "Running..." : "Run";
+    }
+
     function autoGrow() {
-        questionEl.style.height = "auto";
-        questionEl.style.height = Math.min(questionEl.scrollHeight, 160) + "px";
+        question.style.height = "auto";
+        question.style.height = Math.min(question.scrollHeight, 150) + "px";
     }
 
-    function setLoading(isLoading) {
-        askBtn.disabled = isLoading;
-        askBtnLabel.textContent = isLoading ? "Running…" : "Run";
-    }
-
-    function hide(el) { el.hidden = true; }
-    function show(el) { el.hidden = false; }
-
-    function resetPanels() {
+    function resetUI() {
         hide(errorPanel);
         hide(sqlPanel);
         hide(statsRow);
-        hide(chartPanel);
-        hide(resultsPanel);
-        hide(paginationEl);
+        hide(resultPanel);
+        hide(insightPanel);
+
+        if (window.hideVisuals) window.hideVisuals();
     }
 
-    function highlightSql(sql) {
-        const keywords = /\b(SELECT|FROM|WHERE|GROUP BY|ORDER BY|LIMIT|JOIN|LEFT|RIGHT|INNER|OUTER|ON|AS|AND|OR|NOT|IN|IS|NULL|COUNT|SUM|AVG|MIN|MAX|DISTINCT|HAVING|INSERT|UPDATE|DELETE|CREATE|TABLE|DESC|ASC)\b/gi;
-        let escaped = sql
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
-        escaped = escaped.replace(/'([^']*)'/g, "<span class=\"sql-str\">'$1'</span>");
-        escaped = escaped.replace(/\b(\d+(\.\d+)?)\b/g, "<span class=\"sql-num\">$1</span>");
-        escaped = escaped.replace(keywords, "<span class=\"sql-kw\">$&</span>");
-        return escaped;
+    function highlight(sql) {
+        const kw = /\b(SELECT|FROM|WHERE|GROUP BY|ORDER BY|LIMIT|JOIN|LEFT|RIGHT|INNER|OUTER|ON|AS|AND|OR|COUNT|SUM|AVG|MIN|MAX|DISTINCT|HAVING)\b/gi;
+
+        return sql.replace(
+            kw,
+            '<span class="sql-kw">$&</span>'
+        );
     }
 
-    function formatNumber(n) {
-        return Number(n).toLocaleString();
-    }
+    // ---------- table ----------
 
-    function formatTime(t) {
-        const n = Number(t);
-        return (Number.isFinite(n) ? n.toFixed(3) : t) + "s";
-    }
+    function renderTable(data) {
 
-    // ---------- history (server-backed) ----------
-
-    async function loadHistory() {
-        try {
-            const response = await fetch("/api/history/");
-            if (!response.ok) throw new Error("history request failed");
-            const data = await response.json();
-            renderHistory(data);
-        } catch (e) {
-            // Leave whatever is currently shown; history is a convenience,
-            // not something worth surfacing an error panel for.
-        }
-    }
-
-    function renderHistory(items) {
-        historyList.innerHTML = "";
-
-        if (!items || items.length === 0) {
-            const li = document.createElement("li");
-            li.className = "empty-hint";
-            li.textContent = "Your recent questions will show up here.";
-            historyList.appendChild(li);
-            return;
-        }
-
-        items.forEach((item) => {
-            const li = document.createElement("li");
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.className = "history-item";
-            btn.title = item.question;
-
-            const q = document.createElement("span");
-            q.className = "history-question";
-            q.textContent = item.question;
-
-            const sql = document.createElement("code");
-            sql.className = "history-sql";
-            sql.textContent = item.generated_sql;
-
-            const time = document.createElement("span");
-            time.className = "history-time";
-            time.textContent = formatTime(item.execution_time ?? 0);
-
-            btn.append(q, sql, time);
-            btn.addEventListener("click", () => {
-                questionEl.value = item.question;
-                autoGrow();
-                runQuery(item.question, 1);
-            });
-
-            li.appendChild(btn);
-            historyList.appendChild(li);
-        });
-    }
-
-    clearHistoryBtn.addEventListener("click", async () => {
-        try {
-            await fetch("/api/history/", { method: "DELETE" });
-        } catch (e) {
-            /* if there's no DELETE route yet, this just no-ops server-side */
-        }
-        loadHistory();
-    });
-
-    exampleChips.addEventListener("click", (e) => {
-        const chip = e.target.closest(".chip");
-        if (!chip) return;
-        questionEl.value = chip.textContent;
-        autoGrow();
-        runQuery(chip.textContent, 1);
-    });
-
-    // ---------- table rendering (XSS-safe: text content, not innerHTML) ----------
-
-    function renderTable(rows) {
         tableContainer.innerHTML = "";
 
-        if (!rows || rows.length === 0) {
-            const p = document.createElement("p");
-            p.className = "no-data";
-            p.textContent = "The query ran successfully but returned no rows.";
-            tableContainer.appendChild(p);
+        if (!data.length) {
+            tableContainer.innerHTML = "<p>No rows found.</p>";
             return;
         }
 
-        const columns = Object.keys(rows[0]);
-        const table = document.createElement("table");
-        const thead = document.createElement("thead");
-        const headRow = document.createElement("tr");
+        const cols = Object.keys(data[0]);
 
-        columns.forEach((col) => {
+        const table = document.createElement("table");
+
+        const thead = document.createElement("thead");
+        const tr = document.createElement("tr");
+
+        cols.forEach(c => {
             const th = document.createElement("th");
-            th.textContent = col;
-            if (sortState.col === col) {
-                const arrow = document.createElement("span");
-                arrow.className = "sort-arrow";
-                arrow.textContent = sortState.dir === 1 ? "↑" : "↓";
-                th.appendChild(arrow);
-            }
-            th.addEventListener("click", () => {
-                sortState.dir = sortState.col === col ? sortState.dir * -1 : 1;
-                sortState.col = col;
-                const sorted = [...currentRows].sort((a, b) => {
-                    const av = a[col], bv = b[col];
-                    if (av === bv) return 0;
-                    if (av === null || av === undefined) return 1;
-                    if (bv === null || bv === undefined) return -1;
-                    return (av > bv ? 1 : -1) * sortState.dir;
-                });
-                renderTable(sorted);
-            });
-            headRow.appendChild(th);
+            th.textContent = c;
+            tr.appendChild(th);
         });
 
-        thead.appendChild(headRow);
+        thead.appendChild(tr);
         table.appendChild(thead);
 
         const tbody = document.createElement("tbody");
-        rows.forEach((row) => {
+
+        data.forEach(row => {
+
             const tr = document.createElement("tr");
-            columns.forEach((col) => {
+
+            cols.forEach(c => {
                 const td = document.createElement("td");
-                const val = row[col];
-                td.textContent = val === null || val === undefined ? "—" : String(val);
+                td.textContent = row[c] ?? "—";
                 tr.appendChild(td);
             });
+
             tbody.appendChild(tr);
+
         });
+
         table.appendChild(tbody);
 
         tableContainer.appendChild(table);
+
     }
 
-    function toCsv(rows) {
-        if (!rows || rows.length === 0) return "";
-        const columns = Object.keys(rows[0]);
-        const escapeCell = (v) => {
-            const s = v === null || v === undefined ? "" : String(v);
-            return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-        };
-        const lines = [columns.join(",")];
-        rows.forEach((r) => lines.push(columns.map((c) => escapeCell(r[c])).join(",")));
-        return lines.join("\n");
-    }
+    // ---------- history ----------
 
-    exportBtn.addEventListener("click", () => {
-        if (currentRows.length === 0) return;
-        const blob = new Blob([toCsv(currentRows)], { type: "text/csv" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "results.csv";
-        a.click();
-        URL.revokeObjectURL(url);
-    });
+    async function loadHistory() {
 
-    copySqlBtn.addEventListener("click", async () => {
         try {
-            await navigator.clipboard.writeText(sqlCode.textContent);
-            const original = copySqlBtn.textContent;
-            copySqlBtn.textContent = "Copied";
-            setTimeout(() => (copySqlBtn.textContent = original), 1200);
-        } catch (e) {
-            /* clipboard unavailable — silently ignore */
-        }
-    });
 
-    // ---------- chart ----------
+            const r = await fetch("/api/history/");
 
-    function renderChart(chartData) {
-        if (!chartData) {
-            hide(chartPanel);
-            if (chartInstance) {
-                chartInstance.destroy();
-                chartInstance = null;
+            if (!r.ok) return;
+
+            const data = await r.json();
+
+            historyList.innerHTML = "";
+
+            if (!data.length) {
+
+                historyList.innerHTML =
+                    "<li class='empty-hint'>No history</li>";
+
+                return;
             }
-            return;
-        }
 
-        show(chartPanel);
+            data.forEach(item => {
 
-        if (typeof Chart === "undefined") {
-            console.error("Chart.js failed to load; skipping chart render.");
-            hide(chartPanel);
-            return;
-        }
+                const li = document.createElement("li");
 
-        const ctx = document.getElementById("chart");
+                li.innerHTML = `
+                    <button class="history-item">
+                        <span class="history-question">${item.question}</span>
+                    </button>
+                `;
 
-        if (chartInstance) {
-            chartInstance.destroy();
-        }
+                li.onclick = () => {
 
-        chartInstance = new Chart(ctx, {
-            type: chartData.type,
-            data: {
-                labels: chartData.labels,
-                datasets: [{
-                    label: chartData.y_label,
-                    data: chartData.values,
-                    borderWidth: 1,
-                }],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                },
-            },
-        });
+                    question.value = item.question;
+                    autoGrow();
+
+                    runQuery(item.question, 1);
+
+                };
+
+                historyList.appendChild(li);
+
+            });
+
+        } catch (e) { }
+
     }
 
     // ---------- pagination ----------
 
-    function renderPagination() {
+    function updatePagination() {
+
         if (totalPages <= 1) {
-            hide(paginationEl);
+
+            hide(pagination);
             return;
+
         }
-        show(paginationEl);
-        pageNoEl.textContent = `Page ${currentPage} of ${totalPages}`;
-        prevBtn.disabled = currentPage <= 1;
-        nextBtn.disabled = currentPage >= totalPages;
+
+        show(pagination);
+
+        pageNo.textContent =
+            `Page ${currentPage} of ${totalPages}`;
+
+        prev.disabled = currentPage === 1;
+        next.disabled = currentPage === totalPages;
+
     }
 
-    prevBtn.addEventListener("click", () => {
-        if (currentPage > 1) runQuery(currentQuestion, currentPage - 1);
-    });
+    // ---------- main api ----------
 
-    nextBtn.addEventListener("click", () => {
-        if (currentPage < totalPages) runQuery(currentQuestion, currentPage + 1);
-    });
+    async function runQuery(q, page = 1) {
 
-    // ---------- query execution ----------
+        if (!q.trim()) return;
 
-    async function runQuery(question, page = 1) {
-        if (!question || !question.trim()) return;
-        const trimmed = question.trim();
-
-        hide(emptyState);
-        resetPanels();
+        resetUI();
         setLoading(true);
-        sortState = { col: null, dir: 1 };
 
         try {
-            const response = await fetch(
+
+            const res = await fetch(
                 `/api/query/?page=${page}&page_size=${PAGE_SIZE}`,
                 {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ question: trimmed }),
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        question: q
+                    })
                 }
             );
 
-            if (!response.ok) {
-                throw new Error("Request failed with status " + response.status);
-            }
+            const json = await res.json();
 
-            const payload = await response.json();
+            if (!res.ok)
+                throw new Error(json.detail || "API Error");
 
-            if (payload.error) {
-                throw new Error(payload.error);
-            }
+            // IMPORTANT
+            const data = json.results;
 
-            // DRF's paginator wraps the view's own payload inside a
-            // { count, next, previous, results } envelope. The actual
-            // sql/execution_time/data fields live in `results`.
-            const data = payload.results ?? payload;
-            const totalCount = payload.count ?? data.row_count ?? (data.data || []).length;
-
-            currentQuestion = trimmed;
+            currentQuestion = q;
             currentPage = page;
-            totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+            totalPages = Math.ceil(json.count / PAGE_SIZE);
 
-            // Only refresh sidebar history on a fresh question (page 1),
-            // not when the user is just paging through existing results.
-            if (page === 1) loadHistory();
+            // SQL
+            sqlCode.innerHTML = highlight(data.sql);
+            show(sqlPanel);
 
-            if (data.sql) {
-                sqlCode.innerHTML = highlightSql(data.sql);
-                show(sqlPanel);
-            }
-
-            rowsEl.textContent = formatNumber(totalCount);
-            timeEl.textContent = formatTime(data.execution_time ?? 0);
+            // Stats
+            rows.textContent = data.row_count;
+            time.textContent = data.execution_time + " s";
             show(statsRow);
 
-            renderChart(data.chart || null);
+            // Insight
+            if (data.insight) {
+                insightText.textContent = data.insight;
+                show(insightPanel);
+            }
 
-            currentRows = data.data || [];
+            // Chart
+            if (window.renderChart)
+                window.renderChart(data.chart);
+
+            // Table
+            currentRows = data.data;
             renderTable(currentRows);
-            show(resultsPanel);
+            show(resultPanel);
 
-            renderPagination();
-        } catch (err) {
-            errorMessage.textContent = err.message || "The request could not be completed. Please try again.";
-            show(errorPanel);
-        } finally {
-            setLoading(false);
+            updatePagination();
+            loadHistory();
+
         }
+
+        catch (err) {
+
+            errorMessage.textContent = err.message;
+            show(errorPanel);
+
+        }
+
+        finally {
+
+            setLoading(false);
+
+        }
+
     }
+
+    // ---------- csv ----------
+
+    document
+        .getElementById("export-csv")
+        .addEventListener("click", () => {
+
+            if (!currentRows.length) return;
+
+            const cols = Object.keys(currentRows[0]);
+
+            const csv = [
+                cols.join(","),
+                ...currentRows.map(r =>
+                    cols.map(c => r[c]).join(",")
+                )
+            ].join("\n");
+
+            const blob = new Blob([csv], { type: "text/csv" });
+
+            const a = document.createElement("a");
+
+            a.href = URL.createObjectURL(blob);
+            a.download = "result.csv";
+            a.click();
+
+        });
+
+    // ---------- copy sql ----------
+
+    copyBtn.addEventListener("click", async () => {
+
+        await navigator.clipboard.writeText(sqlCode.textContent);
+
+        copyBtn.textContent = "Copied";
+
+        setTimeout(() => {
+
+            copyBtn.textContent = "Copy";
+
+        }, 1200);
+
+    });
 
     // ---------- events ----------
 
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", e => {
+
         e.preventDefault();
-        runQuery(questionEl.value, 1);
+
+        runQuery(question.value, 1);
+
     });
 
-    questionEl.addEventListener("input", autoGrow);
+    prev.onclick = () => {
 
-    questionEl.addEventListener("keydown", (e) => {
-        if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-            e.preventDefault();
-            runQuery(questionEl.value, 1);
-        }
-    });
+        if (currentPage > 1)
+            runQuery(currentQuestion, currentPage - 1);
 
-    clearBtn.addEventListener("click", () => {
-        questionEl.value = "";
-            autoGrow();
-            questionEl.focus();
-        resetPanels();
-        renderChart(null);
-        show(emptyState);
-    });
+    };
 
-    // ---------- init ----------
+    next.onclick = () => {
 
-    hide(paginationEl);
-    loadHistory();
+        if (currentPage < totalPages)
+            runQuery(currentQuestion, currentPage + 1);
+
+    };
+
+    clearBtn.onclick = () => {
+
+        question.value = "";
+        autoGrow();
+
+        resetUI();
+
+        tableContainer.innerHTML = "";
+
+    };
+
+    chips.onclick = e => {
+
+        const chip = e.target.closest(".chip");
+
+        if (!chip) return;
+
+        question.value = chip.textContent;
+
+        autoGrow();
+
+        runQuery(chip.textContent, 1);
+
+    };
+
+    question.addEventListener("input", autoGrow);
+
     autoGrow();
+    loadHistory();
+
 })();
