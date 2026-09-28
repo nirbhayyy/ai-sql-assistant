@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Live customer analytics: totals, city distribution and yearly growth.">
+    <title>AI SQL Dashboard</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'css/dash.css' %}">
+</head>
+
+<body>
+
+<!-- ================= HEADER: brand on the left, page switcher on the right ================= -->
+
+<header class="app-header">
+    <div class="header-inner">
+
+        <div class="brand">
+            <span class="brand-mark" aria-hidden="true">AI</span>
+            <div>
+                <h1>AI SQL Dashboard</h1>
+                <p>Real-time analytics powered by PostgreSQL</p>
+            </div>
+        </div>
+
+        <nav class="top-nav" aria-label="Pages">
+            <a href="/" class="nav-btn">SQL Assistant</a>
+            <a href="/dashboard/" class="nav-btn active" aria-current="page">Dashboard</a>
+        </nav>
+
+    </div>
+</header>
+
+<main class="app">
+
+    <!-- Shown only if the data request fails -->
+    <section id="dash-error" class="panel" role="alert" aria-live="assertive" hidden>
+        <div class="error-box">
+            <strong>Couldn't load the dashboard</strong>
+            <p id="dash-error-message"></p>
+        </div>
+    </section>
+
+    <!-- ================= KPI ================= -->
+
+    <section class="dashboard-grid" aria-labelledby="kpi-heading">
+        <h2 id="kpi-heading" class="visually-hidden">Key metrics</h2>
+
+        <div class="dash-card">
+            <span class="dash-label">Total Customers</span>
+            <p class="dash-value" id="db-total">—</p>
+        </div>
+
+        <div class="dash-card">
+            <span class="dash-label">Top City</span>
+            <p class="dash-value" id="db-city">—</p>
+        </div>
+
+        <div class="dash-card">
+            <span class="dash-label">Total Cities</span>
+            <p class="dash-value" id="db-cities">—</p>
+        </div>
+
+        <div class="dash-card">
+            <span class="dash-label">Years Available</span>
+            <p class="dash-value" id="db-years">—</p>
+        </div>
+    </section>
+
+    <!-- ================= Charts ================= -->
+
+    <section class="dashboard-chart-grid" aria-label="Charts">
+
+        <section class="panel chart-box" aria-labelledby="pie-heading">
+            <div class="panel-head">
+                <h3 id="pie-heading">Customer Distribution</h3>
+            </div>
+            <div class="chart-wrap">
+                <canvas id="dashboard-pie" role="img" aria-label="Pie chart of customers by city"></canvas>
+            </div>
+        </section>
+
+        <section class="panel chart-box" aria-labelledby="line-heading">
+            <div class="panel-head">
+                <h3 id="line-heading">Customer Growth</h3>
+            </div>
+            <div class="chart-wrap">
+                <canvas id="dashboard-line" role="img" aria-label="Line chart of customers per year"></canvas>
+            </div>
+        </section>
+
+    </section>
+
+    <!-- ================= Table ================= -->
+
+    <section class="panel" aria-labelledby="table-heading">
+
+        <div class="panel-head">
+            <h3 id="table-heading">City Statistics</h3>
+        </div>
+
+        <div id="city-table"></div>
+
+    </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+
+</body>
+</html>

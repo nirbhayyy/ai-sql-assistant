@@ -1,6 +1,6 @@
 /* =========================
-   AI SQL Assistant — style.css (query page)
-   Pairs with dashboard.css: same shared design system, different page.
+   AI SQL Dashboard — dashboard.css (dashboard page)
+   Pairs with style.css: same shared design system, different page.
 ========================= */
 
 /* ===== SHARED DESIGN SYSTEM — identical in style.css and dashboard.css. Edit both together. ===== */
@@ -349,384 +349,133 @@ button:focus-visible,
 /* ===== END SHARED DESIGN SYSTEM ===== */
 
 /* =========================================================
-   SQL ASSISTANT PAGE — only what this page needs, built on
-   the shared tokens and components above.
+   DASHBOARD PAGE — only what this page needs, built on the
+   shared tokens and components above.
 ========================================================= */
 
-/* ================= LAYOUT ================= */
+/* error banner sits above the KPI row */
 
-.workbench {
+#dash-error { margin-bottom: 18px; }
+
+/* ================= KPI CARDS ================= */
+
+.dashboard-grid {
 
     display: grid;
-    grid-template-columns: 250px 1fr;
-    gap: 32px;
-    align-items: start;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 18px;
 
 }
 
-.rail {
+.dash-card {
 
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-
-}
-
-.main {
-
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-
-}
-
-/* ================= ASK BOX ================= */
-
-.ask-form {
-
+    position: relative;
+    overflow: hidden;
     background: var(--panel);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-md);
-    padding: 18px 20px 16px;
-    transition: border-color .15s ease;
-
-}
-
-.ask-form:focus-within {
-
-    border-color: var(--blue-4);
-
-}
-
-textarea {
-
-    width: 100%;
-    border: none;
-    outline: none;
-    resize: none;
-    background: transparent;
-
-    font-size: 16px;
-    font-family: inherit;
-    line-height: 1.5;
-    color: var(--ink);
-
-    min-height: 26px;
-
-}
-
-textarea::placeholder { color: rgba(237, 242, 250, .35); font-style: italic; }
-
-.ask-actions {
-
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 10px;
-    margin-top: 12px;
-
-}
-
-.hint {
-
-    margin-right: auto;
-    color: var(--muted);
-    font-size: 12px;
-
-}
-
-kbd {
-
-    font-family: var(--mono);
-    font-size: 11px;
-    background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 1px 5px;
-    color: var(--ink);
+    border-radius: var(--radius-md);
+    padding: 20px 22px 22px;
 
 }
 
-/* ================= SIDEBAR: CHIPS + HISTORY ================= */
+/* thin blue-to-transparent line across the top of each card */
+.dash-card::before {
 
-.rail-section h2 {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--blue-4), transparent 80%);
 
+}
+
+.dash-label {
+
+    display: block;
     font-size: 11.5px;
     font-weight: 700;
     letter-spacing: .03em;
     text-transform: uppercase;
     color: var(--muted);
-    margin-bottom: 12px;
 
 }
 
-.chip-list {
+.dash-value {
 
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-
-}
-
-/* each example query is filled with one of the four reference blues */
-
-.chip {
-
-    border: none;
-    border-radius: var(--radius-pill);
-    padding: 10px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    font-family: var(--sans);
-    color: white;
-    cursor: pointer;
-    text-align: left;
-    transition: filter .12s ease, transform .08s ease;
-
-}
-
-.chip:hover { filter: brightness(1.18); transform: translateX(1px); }
-
-.chip:nth-child(4n+1) { background: var(--tag-1-bg); }
-.chip:nth-child(4n+2) { background: var(--tag-2-bg); }
-.chip:nth-child(4n+3) { background: var(--tag-3-bg); }
-.chip:nth-child(4n+4) { background: var(--tag-4-bg); }
-
-.rail-section-head {
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-
-}
-
-.rail-section-head h2 { margin-bottom: 0; }
-
-.history-list {
-
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-
-}
-
-.history-item {
-
-    width: 100%;
-    border: none;
-    background: transparent;
-    padding: 9px 10px;
-    border-radius: var(--radius-sm);
-    text-align: left;
-    cursor: pointer;
-    transition: background .12s ease;
-
-}
-
-.history-item:hover {
-
-    background: rgba(44, 116, 179, .14);
-
-}
-
-.history-question {
-
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--ink);
-
-}
-
-/* ================= SQL BLOCK ================= */
-
-/* darkest swatch, with the lighter blue for keyword highlights */
-
-pre {
-
-    background: var(--blue-1);
-    color: var(--ink);
-    padding: 16px 18px;
-    border-radius: 14px;
-    overflow: auto;
-    font-size: 13.5px;
-    line-height: 1.65;
-
-}
-
-code {
-
+    margin-top: 12px;
     font-family: var(--mono);
-
-}
-
-.sql-kw {
-
-    color: #7FC1F5;
+    font-size: 30px;
     font-weight: 700;
+    line-height: 1.1;
+    color: var(--ink);
+    overflow-wrap: anywhere;
 
 }
 
-/* ================= STATS ================= */
+/* The headline number gets the accent color.
+   :first-of-type (not :first-child) because the section starts with a
+   visually-hidden <h2>, which would otherwise be the "first child". */
+.dash-card:first-of-type .dash-value { color: var(--blue-4); }
 
-.stats-row {
+/* ================= CHART ROW ================= */
+
+.dashboard-chart-grid {
 
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 18px;
+    margin-bottom: 18px;
 
 }
 
-.stat {
-
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 18px 20px;
-
-}
-
-.stat-value {
-
-    display: block;
-    font-family: var(--mono);
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--ink);
-
-}
-
-.stat-label {
-
-    display: block;
-    margin-top: 3px;
-    font-size: 12px;
-    color: var(--muted);
-
-}
-
-/* ================= KPI RESULT ================= */
-
-.kpi-display {
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 16px;
-
-}
-
-#kpi-value {
-
-    font-family: var(--sans);
-    font-size: 56px;
-    font-weight: 800;
-    color: var(--blue-4);
-    line-height: 1;
-    letter-spacing: -.02em;
-
-}
-
-#kpi-label {
-
-    margin-top: 10px;
-    color: var(--muted);
-    font-size: 13px;
-
-}
-
-/* ================= CHART ================= */
-
-#chart-container {
+.chart-wrap {
 
     position: relative;
-    width: 100%;
-    height: 320px;
-    padding: 4px 6px 10px;
+    height: 300px;
 
 }
 
-#chart {
+/* ================= CITY TABLE ================= */
 
-    width: 100% !important;
-    height: 100% !important;
+#city-table { overflow-x: auto; }
 
-}
-
-/* ================= INSIGHT ================= */
-
-#insightText {
-
-    line-height: 1.7;
-    color: var(--ink);
-    font-size: 14px;
-
-}
-
-/* ================= RESULTS TABLE ================= */
-
-#table-container { overflow-x: auto; }
-
-/* ================= PAGINATION ================= */
-
-.pagination {
+.share-cell {
 
     display: flex;
-    justify-content: center;
     align-items: center;
-    gap: 14px;
+    gap: 10px;
+    min-width: 170px;
 
 }
 
-.pagination button {
+.share-track {
 
-    border: 1px solid var(--border-strong);
-    background: var(--panel);
-    color: var(--ink);
-    padding: 9px 18px;
+    flex: 1;
+    height: 6px;
     border-radius: var(--radius-pill);
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background .12s ease, color .12s ease, border-color .12s ease;
+    background: rgba(255, 255, 255, .08);
+    overflow: hidden;
 
 }
 
-.pagination button:hover:not(:disabled) {
+.share-fill {
 
+    display: block;
+    height: 100%;
+    border-radius: var(--radius-pill);
     background: var(--blue-4);
-    color: white;
-    border-color: var(--blue-4);
 
 }
 
-.pagination button:disabled {
+.share-pct {
 
-    opacity: .4;
-    cursor: not-allowed;
-
-}
-
-#pageNo {
-
-    font-family: var(--mono);
-    font-size: 12.5px;
+    min-width: 46px;
+    text-align: right;
+    font-size: 12px;
     color: var(--muted);
-
-}
-
-/* ================= EMPTY STATE ================= */
-
-.empty-state {
-
-    text-align: center;
-    color: var(--muted);
-    font-size: 14px;
-    padding: 52px 20px;
-    border: 1px dashed var(--border-strong);
-    border-radius: var(--radius-md);
 
 }
 
@@ -734,16 +483,13 @@ code {
 
 @media (max-width: 900px) {
 
-    .workbench {
+    .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+    .dashboard-chart-grid { grid-template-columns: 1fr; }
 
-        grid-template-columns: 1fr;
+}
 
-    }
+@media (max-width: 520px) {
 
-    .stats-row {
-
-        grid-template-columns: 1fr;
-
-    }
+    .dashboard-grid { grid-template-columns: 1fr; }
 
 }

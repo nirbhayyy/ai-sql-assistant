@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Ask questions about your data in plain English and get the SQL, a chart, and the results instantly.">
     <title>AI SQL Assistant</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,7 +19,7 @@
 
 <header class="app-header">
     <div class="brand">
-        <span class="brand-mark">SQL</span>
+        <span class="brand-mark" aria-hidden="true">SQL</span>
 
         <div>
             <h1>AI SQL Assistant</h1>
@@ -33,10 +34,10 @@
 
         <!-- ================= SIDEBAR ================= -->
 
-        <aside class="rail">
+        <aside class="rail" aria-label="Example queries and history">
 
-            <div class="rail-section">
-                <h2>Example Queries</h2>
+            <section class="rail-section" aria-labelledby="examples-heading">
+                <h2 id="examples-heading">Example Queries</h2>
 
                 <div class="chip-list" id="examples">
                     <button class="chip" type="button">Count customers in each city</button>
@@ -44,12 +45,12 @@
                     <button class="chip" type="button">Show customer distribution by city</button>
                     <button class="chip" type="button">How many customers are there?</button>
                 </div>
-            </div>
+            </section>
 
-            <div class="rail-section">
+            <section class="rail-section" aria-labelledby="history-heading">
 
                 <div class="rail-section-head">
-                    <h2>History</h2>
+                    <h2 id="history-heading">History</h2>
                     <button id="clear-history" class="text-btn" type="button">
                         Clear
                     </button>
@@ -61,7 +62,7 @@
                     </li>
                 </ul>
 
-            </div>
+            </section>
 
         </aside>
 
@@ -73,6 +74,7 @@
 
             <form id="ask-form" class="ask-form">
 
+                <label class="visually-hidden" for="question">Ask a question about your data</label>
                 <textarea
                     id="question"
                     rows="1"
@@ -99,22 +101,22 @@
 
             <!-- Error -->
 
-            <div id="error-panel" class="panel" hidden>
+            <section id="error-panel" class="panel" role="alert" aria-live="assertive" hidden>
 
                 <div class="error-box">
                     <strong>Something went wrong</strong>
                     <p id="error-message"></p>
                 </div>
 
-            </div>
+            </section>
 
             <!-- SQL -->
 
-            <div id="sql-panel" class="panel" hidden>
+            <section id="sql-panel" class="panel" aria-labelledby="sql-heading" hidden>
 
                 <div class="panel-head">
 
-                    <h3>Generated SQL</h3>
+                    <h3 id="sql-heading">Generated SQL</h3>
 
                     <button id="copy-sql" class="text-btn" type="button">
                         Copy
@@ -124,11 +126,11 @@
 
                 <pre id="sql"><code></code></pre>
 
-            </div>
+            </section>
 
             <!-- Stats -->
 
-            <div id="stats-row" class="stats-row" hidden>
+            <div id="stats-row" class="stats-row" role="status" aria-live="polite" hidden>
 
                 <div class="stat">
                     <span id="rows" class="stat-value">0</span>
@@ -144,24 +146,24 @@
 
             <!-- ================= CHART ================= -->
 
-            <div id="chart-panel" class="panel" hidden>
+            <section id="chart-panel" class="panel" aria-labelledby="chart-title" hidden>
 
                 <div class="panel-head">
                     <h3 id="chart-title">Analytics</h3>
                 </div>
 
                 <div id="chart-container">
-                    <canvas id="chart"></canvas>
+                    <canvas id="chart" role="img" aria-label="Chart of the query results"></canvas>
                 </div>
 
-            </div>
+            </section>
 
             <!-- ================= KPI ================= -->
 
-            <div id="kpi-panel" class="panel" hidden>
+            <section id="kpi-panel" class="panel" aria-labelledby="kpi-heading" hidden>
 
                 <div class="panel-head">
-                    <h3>Result</h3>
+                    <h3 id="kpi-heading">Result</h3>
                 </div>
 
                 <div class="kpi-display">
@@ -172,27 +174,27 @@
 
                 </div>
 
-            </div>
+            </section>
 
             <!-- ================= AI INSIGHT ================= -->
 
-            <div id="insight-panel" class="panel" hidden>
+            <section id="insight-panel" class="panel" aria-labelledby="insight-heading" hidden>
 
                 <div class="panel-head">
-                    <h3>AI Insight</h3>
+                    <h3 id="insight-heading">AI Insight</h3>
                 </div>
 
                 <p id="insightText"></p>
 
-            </div>
+            </section>
 
             <!-- ================= TABLE ================= -->
 
-            <div id="results-panel" class="panel" hidden>
+            <section id="results-panel" class="panel" aria-labelledby="results-heading" hidden>
 
                 <div class="panel-head">
 
-                    <h3>Results</h3>
+                    <h3 id="results-heading">Results</h3>
 
                     <button id="export-csv" class="text-btn" type="button">
                         Export CSV
@@ -202,11 +204,11 @@
 
                 <div id="table-container"></div>
 
-            </div>
+            </section>
 
             <!-- Pagination -->
 
-            <div id="pagination" class="pagination" hidden>
+            <nav id="pagination" class="pagination" aria-label="Results pages" hidden>
 
                 <button id="prevBtn" type="button">
                     Previous
@@ -218,7 +220,7 @@
                     Next
                 </button>
 
-            </div>
+            </nav>
 
             <!-- Empty -->
 

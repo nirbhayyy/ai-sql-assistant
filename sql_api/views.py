@@ -69,4 +69,39 @@ def history_query(request):
         conn.execute(text("DELETE FROM query_history"))
     return Response({"message": "History cleared"})
 
+@api_view(['GET'])
+def dashboard_view(request):
+    with engine.connect() as conn:
+        total=conn.execute(text("""SELECT COUNT(*) FROM customers""")).scalar()
 
+        city=conn.execute(text("""SELECT city,
+                   COUNT(*) AS total
+            FROM customers
+            GROUP BY city
+            ORDER BY total DESC
+        """)).fetchall()
+
+        year=conn.execute(text("""SELECT EXTRACT(YEAR FROM join_date) AS year,
+                   COUNT(*) AS total
+            FROM customers
+            GROUP BY year
+            ORDER BY year""")).fetchall()
+
+    return Response({
+        "total_customers": total,
+
+        "top_city": city[0].city,
+
+        "city_distribution": {
+            "labels": [r.city for r in city],
+            "values": [r.total for r in city]
+        },
+
+        "yearly_growth": {
+            "labels": [str(int(r.year)) for r in year],
+            "values": [r.total for r in year]
+        }
+    })
+
+def dash_board(request):
+    return render(request,'dashboard.html')
