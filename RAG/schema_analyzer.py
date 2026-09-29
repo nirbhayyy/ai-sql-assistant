@@ -1,5 +1,5 @@
 from sqlalchemy import text
-from .executor import engine
+from executor import engine
 
 EXCLUDED_TABLES = {
     "django_migrations",
@@ -53,37 +53,187 @@ def detect_columns(schema):
         categorical = []
         numeric = []
         dates = []
+        ids = []
+        text_colunm = []
 
         for c in cols:
 
-            t = c["type"]
+            name = c['column'].lower()
+            dtype = c['type'].lower()
 
-            if t in ("text","character varying"):
-                categorical.append(c["column"])
+            # ID columns
+            if name == "id" or name.endswith("_id"):
+                ids.append(c['column'])
+                continue
 
-            elif t in ("integer","bigint","numeric","double precision"):
-                numeric.append(c["column"])
+            # Email columns
+            if 'email' in name:
+                text_colunm.append(c['column'])
+                continue
 
-            elif t in ("date","timestamp without time zone","timestamp"):
-                dates.append(c["column"])
+            # Date columns
+            if dtype in (
+                "date",
+                "timestamp without time zone",
+                "timestamp",
+                "timestamp with time zone"
+            ):
+                dates.append(c['column'])
+                continue
 
+            # Numeric columns
+            if dtype in (
+                "integer",
+                "bigint",
+                "smallint",
+                "numeric",
+                "decimal",
+                "real",
+                "double precision"
+            ):
+                numeric.append(c['column'])
+                continue
+
+            # Text / categorical columns
+            if dtype in (
+                "text",
+                "character varying",
+                "character"
+            ):
+                text_colunm.append(c['column'])
+                categorical.append(c['column'])
+
+        # IMPORTANT:
+        # This must be INSIDE the table loop
         info[table] = {
             "categorical": categorical,
             "numeric": numeric,
-            "date": dates
+            "date": dates,
+            "ids": ids,
+            "text": text_colunm
         }
 
     return info
 
-def get_primary_table(schema):
+def get_best_category(columns):
 
-    largest_table = None
-    max_columns = 0
+    categorical = columns["categorical"]
 
-    for table, cols in schema.items():
+    if not categorical:
+        return None
 
-        if len(cols) > max_columns:
-            max_columns = len(cols)
-            largest_table = table
+    preferred_words = [
+        "city",
+        "category",
+        "department",
+        "type",
+        "status",
+        "country",
+        "state",
+        "region",
+        "gender"
+    ]
 
-    return largest_table
+    # First check preferred names
+    for column in categorical:
+
+        column_lower = column.lower()
+
+        for word in preferred_words:
+
+            if word in column_lower:
+                return column
+
+    # Otherwise return first candidate
+    return categorical[0]
+
+def get_best_date(columns):
+    dates=columns['date']
+
+    if not dates:
+        return None
+
+
+    preferred_words = [
+        "date",
+        "created",
+        "joined",
+        "joining",
+        "registered",
+        "updated"
+    ]
+
+    for col in dates:
+        col_lower=col.lower()
+        for world in preferred_words:
+            if world in col_lower:
+                return col
+
+    return dates[0]
+
+
+
+
+def get_primary_table(schema, info):
+
+    best_table = None
+    best_score = -1
+
+    for table in schema.keys():
+
+        if table not in info:
+            continue
+
+        columns = info[table]
+
+        score = 0
+
+        # Useful categorical columns
+        score += len(columns["categorical"]) * 2
+
+        # Useful numeric columns
+        score += len(columns["numeric"]) * 2
+
+        # Date columns
+        score += len(columns["date"]) * 2
+
+        # IDs should not increase importance
+        score -= len(columns["ids"])
+
+        # Tables with dates are useful for dashboards
+        if columns["date"]:
+            score += 3
+
+        # Tables with categories are useful for charts
+        if columns["categorical"]:
+            score += 3
+
+        if score > best_score:
+
+            best_score = score
+            best_table = table
+
+    return best_table
+
+if __name__ == "__main__":
+
+    schema = get_schema()
+
+    info = detect_columns(schema)
+
+    print("\nSCHEMA:")
+    print(schema)
+
+    print("\nCOLUMN INFO:")
+    print(info)
+
+    print("\nPRIMARY TABLE:")
+    print(get_primary_table(schema, info))
+
+    table = get_primary_table(schema, info)
+
+    print("\nBEST CATEGORY:")
+    print(get_best_category(info[table]))
+
+    print("\nBEST DATE:")
+    print(get_best_date(info[table]))

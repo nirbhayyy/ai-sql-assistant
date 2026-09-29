@@ -1,9 +1,5 @@
-from RAG.schema_analyzer import get_schema,get_primary_table,detect_columns
-schema=get_schema()
+from RAG.dashboard_genrator import genrate_dashboards
+dash=genrate_dashboards()
+print(dash)
 
-print(schema)
-print("="*137)
-print(get_primary_table(schema))
-print("="*137)
-print(detect_columns(schema))
-print("="*137)
+

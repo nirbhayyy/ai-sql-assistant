@@ -8,6 +8,7 @@ from RAG.executor import engine
 from sqlalchemy import text
 from .pagination import QueryPagination
 from .util import detect_chart,genrate_insides
+from RAG.dashboard_genrator import genrate_dashboards
 
 
 @api_view(['POST'])
@@ -105,3 +106,14 @@ def dashboard_view(request):
 
 def dash_board(request):
     return render(request,'dashboard.html')
+
+@api_view(['GET'])
+def dashboard_api(request):
+    try:
+        data=genrate_dashboards()
+        return Response(data)
+    except Exception as e:
+        return Response({
+            'Erorr':str(e)
+        },status=500
+        )
