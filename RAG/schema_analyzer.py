@@ -1,5 +1,6 @@
 from sqlalchemy import text
-from executor import engine
+from .executor import engine
+from .relationship_analyzer import get_relationships
 
 EXCLUDED_TABLES = {
     "django_migrations",
@@ -215,25 +216,46 @@ def get_primary_table(schema, info):
 
     return best_table
 
-if __name__ == "__main__":
+def build_database_context():
 
     schema = get_schema()
 
-    info = detect_columns(schema)
+    relationships = get_relationships()
 
-    print("\nSCHEMA:")
-    print(schema)
+    context = []
 
-    print("\nCOLUMN INFO:")
-    print(info)
+    context.append("DATABASE SCHEMA")
+    context.append("================")
 
-    print("\nPRIMARY TABLE:")
-    print(get_primary_table(schema, info))
+    for table, columns in schema.items():
 
-    table = get_primary_table(schema, info)
+        context.append(f"\nTable: {table}")
 
-    print("\nBEST CATEGORY:")
-    print(get_best_category(info[table]))
+        for column in columns:
 
-    print("\nBEST DATE:")
-    print(get_best_date(info[table]))
+            context.append(
+                f"- {column['column']}: {column['type']}"
+            )
+
+    context.append("\n\nTABLE RELATIONSHIPS")
+    context.append("===================")
+
+    for relationship in relationships:
+
+        context.append(
+            f"- "
+            f"{relationship['source_table']}."
+            f"{relationship['source_column']}"
+            f" → "
+            f"{relationship['target_table']}."
+            f"{relationship['target_column']}"
+        )
+
+    return "\n".join(context)
+
+if __name__ == "__main__":
+
+    context = build_database_context()
+
+    print("\n")
+    print(context)

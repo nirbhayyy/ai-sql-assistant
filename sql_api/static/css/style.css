@@ -1,18 +1,21 @@
 /* =========================
    AI SQL Assistant — style.css (query page)
    Pairs with dashboard.css: same shared design system, different page.
+   Palette: Everest / Olive / Sand / Off White.
 ========================= */
 
 /* ===== SHARED DESIGN SYSTEM — identical in style.css and dashboard.css. Edit both together. ===== */
 
 /* =========================
-   Palette (from the reference image, dark -> light):
-     --blue-1: #0A2647
-     --blue-2: #144272
-     --blue-3: #205295
-     --blue-4: #2C74B3
-   The page background is darker than any swatch; the swatches
-   themselves are reserved for accents, tags and highlights.
+   Palette (from the reference image):
+     --everest:  #18442A  (darkest green)
+     --olive:    #45644A
+     --sand:     #E4D8B4  (warm accent — used wherever the old
+                           "brightest swatch" accent used to go)
+     --offwhite: #F3EDE3  (lightest — doubles as body text color)
+   Page background is darker than any swatch; panels use a neutral
+   dark tone that isn't one of the four, so tag pills stay legible
+   against it.
 ========================= */
 
 * {
@@ -23,23 +26,25 @@
 
 :root {
 
-    /* the four reference swatches, dark to light */
-    --blue-1: #0A2647;
-    --blue-2: #144272;
-    --blue-3: #205295;
-    --blue-4: #2C74B3;
+    /* the four reference swatches */
+    --everest: #18442A;
+    --olive: #45644A;
+    --sand: #E4D8B4;
+    --offwhite: #F3EDE3;
 
-    --bg: #05070A;
-    --panel: #10141C;
+    --bg: #0A0D09;
+    --panel: #14170F;
 
-    --ink: #EDF2FA;
+    --ink: var(--offwhite);
+    --accent: var(--sand);
+    --accent-rgb: 228, 216, 180;
 
-    --muted: #7C8CA6;
-    --border: rgba(255, 255, 255, .07);
-    --border-strong: rgba(255, 255, 255, .14);
+    --muted: #8A9686;
+    --border: rgba(243, 237, 227, .07);
+    --border-strong: rgba(243, 237, 227, .14);
 
-    --danger: #FF6B6B;
-    --danger-soft: rgba(255, 107, 107, .12);
+    --danger: #FF6B5B;
+    --danger-soft: rgba(255, 107, 91, .12);
 
     --radius-sm: 12px;
     --radius-md: 20px;
@@ -48,11 +53,11 @@
     --mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
     --sans: 'Inter', system-ui, sans-serif;
 
-    /* tags cycle through the four reference blues directly */
-    --tag-1-bg: var(--blue-1);
-    --tag-2-bg: var(--blue-2);
-    --tag-3-bg: var(--blue-3);
-    --tag-4-bg: var(--blue-4);
+    /* tags cycle through the four reference swatches directly */
+    --tag-1-bg: var(--everest);
+    --tag-2-bg: var(--olive);
+    --tag-3-bg: var(--sand);
+    --tag-4-bg: var(--offwhite);
 
 }
 
@@ -63,7 +68,7 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-::selection { background: var(--blue-4); color: white; }
+::selection { background: var(--accent); color: var(--bg); }
 
 .visually-hidden {
     position: absolute;
@@ -122,7 +127,7 @@ body {
     place-items: center;
 
     border-radius: 10px;
-    background: var(--blue-4);
+    background: var(--accent);
     color: var(--bg);
 
     font-family: var(--sans);
@@ -178,8 +183,8 @@ body {
 
 .nav-btn.active {
 
-    background: var(--blue-4);
-    color: white;
+    background: var(--accent);
+    color: var(--bg);
 
 }
 
@@ -242,12 +247,12 @@ body {
 
 .btn-primary {
 
-    background: var(--blue-4);
-    color: white;
+    background: var(--accent);
+    color: var(--bg);
 
 }
 
-.btn-primary:hover { background: var(--blue-3); }
+.btn-primary:hover { filter: brightness(.92); }
 .btn-primary:active { transform: scale(.97); }
 .btn-primary:disabled { opacity: .45; cursor: progress; transform: none; }
 
@@ -259,12 +264,12 @@ body {
 
 }
 
-.btn-ghost:hover { background: rgba(44, 116, 179, .12); border-color: var(--blue-4); }
+.btn-ghost:hover { background: rgba(var(--accent-rgb), .12); border-color: var(--accent); }
 
 .text-btn {
 
     background: none;
-    color: var(--blue-4);
+    color: var(--accent);
     cursor: pointer;
     font-weight: 700;
     font-size: 12.5px;
@@ -275,7 +280,7 @@ body {
 
 }
 
-.text-btn:hover { background: rgba(44, 116, 179, .14); }
+.text-btn:hover { background: rgba(var(--accent-rgb), .14); }
 
 /* ================= TABLES ================= */
 
@@ -311,7 +316,7 @@ td {
 
 }
 
-tbody tr:hover { background: rgba(44, 116, 179, .10); }
+tbody tr:hover { background: rgba(var(--accent-rgb), .10); }
 
 /* ================= MESSAGES ================= */
 
@@ -341,7 +346,7 @@ tbody tr:hover { background: rgba(44, 116, 179, .10); }
 button:focus-visible,
 .nav-btn:focus-visible {
 
-    outline: 2px solid var(--blue-4);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
 
 }
@@ -394,7 +399,7 @@ button:focus-visible,
 
 .ask-form:focus-within {
 
-    border-color: var(--blue-4);
+    border-color: var(--accent);
 
 }
 
@@ -415,7 +420,7 @@ textarea {
 
 }
 
-textarea::placeholder { color: rgba(237, 242, 250, .35); font-style: italic; }
+textarea::placeholder { color: rgba(243, 237, 227, .35); font-style: italic; }
 
 .ask-actions {
 
@@ -468,7 +473,8 @@ kbd {
 
 }
 
-/* each example query is filled with one of the four reference blues */
+/* each example query is filled with one of the four reference swatches;
+   text color flips dark/light per swatch so it stays legible on both */
 
 .chip {
 
@@ -478,7 +484,6 @@ kbd {
     font-size: 13px;
     font-weight: 600;
     font-family: var(--sans);
-    color: white;
     cursor: pointer;
     text-align: left;
     transition: filter .12s ease, transform .08s ease;
@@ -487,10 +492,10 @@ kbd {
 
 .chip:hover { filter: brightness(1.18); transform: translateX(1px); }
 
-.chip:nth-child(4n+1) { background: var(--tag-1-bg); }
-.chip:nth-child(4n+2) { background: var(--tag-2-bg); }
-.chip:nth-child(4n+3) { background: var(--tag-3-bg); }
-.chip:nth-child(4n+4) { background: var(--tag-4-bg); }
+.chip:nth-child(4n+1) { background: var(--tag-1-bg); color: var(--ink); }
+.chip:nth-child(4n+2) { background: var(--tag-2-bg); color: var(--ink); }
+.chip:nth-child(4n+3) { background: var(--tag-3-bg); color: var(--bg); }
+.chip:nth-child(4n+4) { background: var(--tag-4-bg); color: var(--bg); }
 
 .rail-section-head {
 
@@ -527,7 +532,7 @@ kbd {
 
 .history-item:hover {
 
-    background: rgba(44, 116, 179, .14);
+    background: rgba(var(--accent-rgb), .14);
 
 }
 
@@ -541,11 +546,11 @@ kbd {
 
 /* ================= SQL BLOCK ================= */
 
-/* darkest swatch, with the lighter blue for keyword highlights */
+/* darkest swatch, with the accent used for keyword highlights */
 
 pre {
 
-    background: var(--blue-1);
+    background: var(--everest);
     color: var(--ink);
     padding: 16px 18px;
     border-radius: 14px;
@@ -563,7 +568,7 @@ code {
 
 .sql-kw {
 
-    color: #7FC1F5;
+    color: var(--sand);
     font-weight: 700;
 
 }
@@ -623,7 +628,7 @@ code {
     font-family: var(--sans);
     font-size: 56px;
     font-weight: 800;
-    color: var(--blue-4);
+    color: var(--accent);
     line-height: 1;
     letter-spacing: -.02em;
 
@@ -696,9 +701,9 @@ code {
 
 .pagination button:hover:not(:disabled) {
 
-    background: var(--blue-4);
-    color: white;
-    border-color: var(--blue-4);
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
 
 }
 

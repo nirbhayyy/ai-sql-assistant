@@ -19,12 +19,23 @@ DB_URL = URL.create(
 
 engine=create_engine(DB_URL)
 
-def is_safe_query(sql:str):
-    sql=sql.strip().lower()
-    if not sql.startswith('select'):
+def is_safe_query(sql: str):
+
+    if not sql or not sql.strip():
         return False
 
-    blocked = [
+    sql = sql.strip()
+
+    # Remove trailing semicolon
+    sql = sql.rstrip(";").strip()
+
+    sql_lower = sql.lower()
+
+    # Only SELECT queries
+    if not sql_lower.startswith("select"):
+        return False
+
+    blocked_keywords = [
         "insert",
         "update",
         "delete",
@@ -32,8 +43,23 @@ def is_safe_query(sql:str):
         "alter",
         "truncate",
         "create",
+        "replace",
+        "grant",
+        "revoke",
+        "commit",
+        "rollback",
     ]
-    return not any(word in sql for word in blocked)
+
+    for keyword in blocked_keywords:
+
+        if f" {keyword} " in f" {sql_lower} ":
+            return False
+
+    # Prevent multiple statements
+    if ";" in sql:
+        return False
+
+    return True
 
 
 def execuute_sql(sql:str):
@@ -57,3 +83,29 @@ def save_history(quesion,sql,execution_time):
             's':sql,
             't':execution_time
         })
+
+if __name__ == "__main__":
+
+    tests = [
+
+        "SELECT * FROM customers",
+
+        "SELECT name FROM customers WHERE city = 'Pune'",
+
+        "DELETE FROM customers",
+
+        "DROP TABLE customers",
+
+        "UPDATE customers SET city = 'Pune'",
+
+        "SELECT * FROM customers; DROP TABLE customers",
+
+        "INSERT INTO customers VALUES (1, 'Test')"
+
+    ]
+
+    for query in tests:
+
+        print(query)
+        print("SAFE:", is_safe_query(query))
+        print("-" * 50)

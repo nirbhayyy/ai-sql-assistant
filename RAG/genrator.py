@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from .retriever import retrieve_schema
 from openai import OpenAI
 from groq import Groq
+from RAG.schema_analyzer import build_database_context
 load_dotenv()
 
 
@@ -13,7 +14,7 @@ client=Groq(api_key=os.getenv('GEOQ_API'))
 
 def genrate_sql(question):
     docs=retrieve_schema(question)
-    context='\n\n'.join(doc.page_content for doc in docs)
+    context=build_database_context()
 
     prompt = f"""
 You are an expert PostgreSQL SQL generator.
