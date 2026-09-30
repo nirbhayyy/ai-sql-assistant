@@ -1,6 +1,6 @@
 from sqlalchemy import text
-from .executor import engine
-from .relationship_analyzer import get_relationships
+from executor import engine
+from relationship_analyzer import get_relationships
 
 EXCLUDED_TABLES = {
     "django_migrations",

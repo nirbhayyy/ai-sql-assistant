@@ -1,5 +1,5 @@
 from sqlalchemy import text
-from .executor import engine
+from executor import engine
 
 EXCLUDED_TABLES = {
     "django_migrations",
