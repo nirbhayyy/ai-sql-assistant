@@ -4,6 +4,7 @@
     const PAGE_SIZE = 5;
 
     // ---------- DOM ----------
+
     const form = document.getElementById("ask-form");
     const question = document.getElementById("question");
 
@@ -23,120 +24,215 @@
     const insightText = document.getElementById("insightText");
 
     const resultPanel = document.getElementById("results-panel");
-    const tableContainer = document.getElementById("table-container");
+    const tableContainer =
+        document.getElementById("table-container");
 
-    const errorPanel = document.getElementById("error-panel");
-    const errorMessage = document.getElementById("error-message");
+    const errorPanel =
+        document.getElementById("error-panel");
 
-    const pagination = document.getElementById("pagination");
-    const prev = document.getElementById("prevBtn");
-    const next = document.getElementById("nextBtn");
-    const pageNo = document.getElementById("pageNo");
+    const errorMessage =
+        document.getElementById("error-message");
 
-    const historyList = document.getElementById("history-list");
-    const chips = document.getElementById("examples");
+    const pagination =
+        document.getElementById("pagination");
+
+    const prev =
+        document.getElementById("prevBtn");
+
+    const next =
+        document.getElementById("nextBtn");
+
+    const pageNo =
+        document.getElementById("pageNo");
+
+    const historyList =
+        document.getElementById("history-list");
+
+    const chips =
+        document.getElementById("examples");
+
 
     let currentQuestion = "";
     let currentPage = 1;
     let totalPages = 1;
     let currentRows = [];
 
-    // ---------- helpers ----------
 
-    const hide = el => el && (el.hidden = true);
-    const show = el => el && (el.hidden = false);
+    // ---------- CSRF ----------
 
-    function setLoading(v) {
-        askBtn.disabled = v;
-        askLabel.textContent = v ? "Running..." : "Run";
+    function getCSRFToken() {
+
+        const token = document.querySelector(
+            "[name=csrfmiddlewaretoken]"
+        );
+
+        return token ? token.value : "";
     }
+
+
+    // ---------- HELPERS ----------
+
+    const hide = el => {
+        if (el) {
+            el.hidden = true;
+        }
+    };
+
+
+    const show = el => {
+        if (el) {
+            el.hidden = false;
+        }
+    };
+
+
+    function setLoading(value) {
+
+        askBtn.disabled = value;
+
+        askLabel.textContent =
+            value ? "Running..." : "Run";
+    }
+
 
     function autoGrow() {
+
         question.style.height = "auto";
-        question.style.height = Math.min(question.scrollHeight, 150) + "px";
+
+        question.style.height =
+            Math.min(
+                question.scrollHeight,
+                150
+            ) + "px";
     }
 
+
     function resetUI() {
+
         hide(errorPanel);
         hide(sqlPanel);
         hide(statsRow);
         hide(resultPanel);
         hide(insightPanel);
 
-        if (window.hideVisuals) window.hideVisuals();
+        if (window.hideVisuals) {
+            window.hideVisuals();
+        }
     }
 
+
     function highlight(sql) {
-        const kw = /\b(SELECT|FROM|WHERE|GROUP BY|ORDER BY|LIMIT|JOIN|LEFT|RIGHT|INNER|OUTER|ON|AS|AND|OR|COUNT|SUM|AVG|MIN|MAX|DISTINCT|HAVING)\b/gi;
+
+        const keywords =
+            /\b(SELECT|FROM|WHERE|GROUP BY|ORDER BY|LIMIT|JOIN|LEFT|RIGHT|INNER|OUTER|ON|AS|AND|OR|COUNT|SUM|AVG|MIN|MAX|DISTINCT|HAVING)\b/gi;
 
         return sql.replace(
-            kw,
+            keywords,
             '<span class="sql-kw">$&</span>'
         );
     }
 
-    // ---------- table ----------
+
+    // ---------- TABLE ----------
 
     function renderTable(data) {
 
         tableContainer.innerHTML = "";
 
-        if (!data.length) {
-            tableContainer.innerHTML = "<p>No rows found.</p>";
+        if (!data || !data.length) {
+
+            tableContainer.innerHTML =
+                "<p>No rows found.</p>";
+
             return;
         }
 
-        const cols = Object.keys(data[0]);
 
-        const table = document.createElement("table");
+        const columns =
+            Object.keys(data[0]);
 
-        const thead = document.createElement("thead");
-        const tr = document.createElement("tr");
 
-        cols.forEach(c => {
-            const th = document.createElement("th");
-            th.textContent = c;
-            tr.appendChild(th);
+        const table =
+            document.createElement("table");
+
+
+        const thead =
+            document.createElement("thead");
+
+
+        const headerRow =
+            document.createElement("tr");
+
+
+        columns.forEach(column => {
+
+            const th =
+                document.createElement("th");
+
+            th.textContent = column;
+
+            headerRow.appendChild(th);
         });
 
-        thead.appendChild(tr);
+
+        thead.appendChild(headerRow);
+
         table.appendChild(thead);
 
-        const tbody = document.createElement("tbody");
+
+        const tbody =
+            document.createElement("tbody");
+
 
         data.forEach(row => {
 
-            const tr = document.createElement("tr");
+            const tr =
+                document.createElement("tr");
 
-            cols.forEach(c => {
-                const td = document.createElement("td");
-                td.textContent = row[c] ?? "—";
+
+            columns.forEach(column => {
+
+                const td =
+                    document.createElement("td");
+
+                td.textContent =
+                    row[column] ?? "—";
+
                 tr.appendChild(td);
             });
 
-            tbody.appendChild(tr);
 
+            tbody.appendChild(tr);
         });
+
 
         table.appendChild(tbody);
 
         tableContainer.appendChild(table);
-
     }
 
-    // ---------- history ----------
+
+    // ---------- HISTORY ----------
 
     async function loadHistory() {
 
         try {
 
-            const r = await fetch("/api/history/");
+            const response =
+                await fetch("/api/history/");
 
-            if (!r.ok) return;
 
-            const data = await r.json();
+            if (!response.ok) {
+                return;
+            }
+
+
+            const data =
+                await response.json();
+
 
             historyList.innerHTML = "";
+
 
             if (!data.length) {
 
@@ -146,229 +242,452 @@
                 return;
             }
 
+
             data.forEach(item => {
 
-                const li = document.createElement("li");
+                const li =
+                    document.createElement("li");
+
 
                 li.innerHTML = `
-                    <button class="history-item">
-                        <span class="history-question">${item.question}</span>
+                    <button
+                        class="history-item"
+                        type="button"
+                    >
+                        <span class="history-question">
+                            ${item.question}
+                        </span>
                     </button>
                 `;
 
+
                 li.onclick = () => {
 
-                    question.value = item.question;
+                    question.value =
+                        item.question;
+
                     autoGrow();
 
-                    runQuery(item.question, 1);
-
+                    runQuery(
+                        item.question,
+                        1
+                    );
                 };
 
-                historyList.appendChild(li);
 
+                historyList.appendChild(li);
             });
 
-        } catch (e) { }
 
+        } catch (error) {
+
+            console.error(
+                "History error:",
+                error
+            );
+        }
     }
 
-    // ---------- pagination ----------
+
+    // ---------- PAGINATION ----------
 
     function updatePagination() {
 
         if (totalPages <= 1) {
 
             hide(pagination);
-            return;
 
+            return;
         }
 
+
         show(pagination);
+
 
         pageNo.textContent =
             `Page ${currentPage} of ${totalPages}`;
 
-        prev.disabled = currentPage === 1;
-        next.disabled = currentPage === totalPages;
 
+        prev.disabled =
+            currentPage === 1;
+
+
+        next.disabled =
+            currentPage === totalPages;
     }
 
-    // ---------- main api ----------
 
-    async function runQuery(q, page = 1) {
+    // ---------- MAIN API ----------
 
-        if (!q.trim()) return;
+    async function runQuery(
+        queryText,
+        page = 1
+    ) {
+
+        if (!queryText.trim()) {
+            return;
+        }
+
 
         resetUI();
+
         setLoading(true);
+
 
         try {
 
-            const res = await fetch(
-                `/api/query/?page=${page}&page_size=${PAGE_SIZE}`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        question: q
-                    })
-                }
+            const response =
+                await fetch(
+                    `/api/query/?page=${page}&page_size=${PAGE_SIZE}`,
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type": "application/json",
+
+                            // Django CSRF token
+                            "X-CSRFToken":
+                                getCSRFToken()
+                        },
+
+                        body: JSON.stringify({
+                            question: queryText
+                        })
+                    }
+                );
+
+
+            const json =
+                await response.json();
+
+
+            console.log(
+                "API STATUS:",
+                response.status
             );
 
-            const json = await res.json();
 
-            if (!res.ok)
-                throw new Error(json.detail || "API Error");
+            console.log(
+                "API RESPONSE:",
+                json
+            );
 
-            // IMPORTANT
-            const data = json.results;
 
-            currentQuestion = q;
-            currentPage = page;
-            totalPages = Math.ceil(json.count / PAGE_SIZE);
+            if (!response.ok) {
 
-            // SQL
-            sqlCode.innerHTML = highlight(data.sql);
+                throw new Error(
+                    json.message ||
+                    json.error ||
+                    json.detail ||
+                    "API Error"
+                );
+            }
+
+
+            // DRF pagination response
+            const data =
+                json.results;
+
+
+            currentQuestion =
+                queryText;
+
+
+            currentPage =
+                page;
+
+
+            totalPages =
+                Math.ceil(
+                    json.count / PAGE_SIZE
+                );
+
+
+            // ---------- SQL ----------
+
+            sqlCode.innerHTML =
+                highlight(data.sql);
+
             show(sqlPanel);
 
-            // Stats
-            rows.textContent = data.row_count;
-            time.textContent = data.execution_time + " s";
+
+            // ---------- STATS ----------
+
+            rows.textContent =
+                data.row_count;
+
+
+            time.textContent =
+                data.execution_time + " s";
+
+
             show(statsRow);
 
-            // Insight
-            if (data.insight) {
-                insightText.textContent = data.insight;
+
+            // ---------- INSIGHT ----------
+
+            if (data.insides) {
+
+                insightText.textContent =
+                    data.insides;
+
                 show(insightPanel);
             }
 
-            // Chart
-            if (window.renderChart)
-                window.renderChart(data.chart);
 
-            // Table
-            currentRows = data.data;
-            renderTable(currentRows);
+            // ---------- CHART ----------
+
+            if (window.renderChart) {
+
+                window.renderChart(
+                    data.chart
+                );
+            }
+
+
+            // ---------- TABLE ----------
+
+            currentRows =
+                data.data || [];
+
+
+            renderTable(
+                currentRows
+            );
+
+
             show(resultPanel);
 
+
+            // ---------- PAGINATION ----------
+
             updatePagination();
+
+
+            // ---------- HISTORY ----------
+
             loadHistory();
 
-        }
 
-        catch (err) {
+        } catch (error) {
 
-            errorMessage.textContent = err.message;
+            console.error(
+                "QUERY ERROR:",
+                error
+            );
+
+
+            errorMessage.textContent =
+                error.message;
+
+
             show(errorPanel);
 
-        }
 
-        finally {
+        } finally {
 
             setLoading(false);
-
         }
-
     }
 
-    // ---------- csv ----------
 
-    document
-        .getElementById("export-csv")
-        .addEventListener("click", () => {
+    // ---------- CSV ----------
 
-            if (!currentRows.length) return;
+    const exportCsv =
+        document.getElementById(
+            "export-csv"
+        );
 
-            const cols = Object.keys(currentRows[0]);
 
-            const csv = [
-                cols.join(","),
-                ...currentRows.map(r =>
-                    cols.map(c => r[c]).join(",")
-                )
-            ].join("\n");
+    if (exportCsv) {
 
-            const blob = new Blob([csv], { type: "text/csv" });
+        exportCsv.addEventListener(
+            "click",
+            () => {
 
-            const a = document.createElement("a");
+                if (!currentRows.length) {
+                    return;
+                }
 
-            a.href = URL.createObjectURL(blob);
-            a.download = "result.csv";
-            a.click();
 
-        });
+                const columns =
+                    Object.keys(
+                        currentRows[0]
+                    );
 
-    // ---------- copy sql ----------
 
-    copyBtn.addEventListener("click", async () => {
+                const csv = [
 
-        await navigator.clipboard.writeText(sqlCode.textContent);
+                    columns.join(","),
 
-        copyBtn.textContent = "Copied";
+                    ...currentRows.map(row =>
+                        columns
+                            .map(column =>
+                                row[column] ?? ""
+                            )
+                            .join(",")
+                    )
 
-        setTimeout(() => {
+                ].join("\n");
 
-            copyBtn.textContent = "Copy";
 
-        }, 1200);
+                const blob =
+                    new Blob(
+                        [csv],
+                        {
+                            type: "text/csv"
+                        }
+                    );
 
-    });
 
-    // ---------- events ----------
+                const link =
+                    document.createElement("a");
 
-    form.addEventListener("submit", e => {
 
-        e.preventDefault();
+                link.href =
+                    URL.createObjectURL(blob);
 
-        runQuery(question.value, 1);
 
-    });
+                link.download =
+                    "result.csv";
+
+
+                link.click();
+
+
+                URL.revokeObjectURL(
+                    link.href
+                );
+            }
+        );
+    }
+
+
+    // ---------- COPY SQL ----------
+
+    if (copyBtn) {
+
+        copyBtn.addEventListener(
+            "click",
+            async () => {
+
+                await navigator.clipboard.writeText(
+                    sqlCode.textContent
+                );
+
+
+                copyBtn.textContent =
+                    "Copied";
+
+
+                setTimeout(() => {
+
+                    copyBtn.textContent =
+                        "Copy";
+
+                }, 1200);
+            }
+        );
+    }
+
+
+    // ---------- FORM ----------
+
+    form.addEventListener(
+        "submit",
+        event => {
+
+            event.preventDefault();
+
+            runQuery(
+                question.value,
+                1
+            );
+        }
+    );
+
+
+    // ---------- PREVIOUS ----------
 
     prev.onclick = () => {
 
-        if (currentPage > 1)
-            runQuery(currentQuestion, currentPage - 1);
+        if (currentPage > 1) {
 
+            runQuery(
+                currentQuestion,
+                currentPage - 1
+            );
+        }
     };
+
+
+    // ---------- NEXT ----------
 
     next.onclick = () => {
 
-        if (currentPage < totalPages)
-            runQuery(currentQuestion, currentPage + 1);
+        if (currentPage < totalPages) {
 
+            runQuery(
+                currentQuestion,
+                currentPage + 1
+            );
+        }
     };
+
+
+    // ---------- CLEAR ----------
 
     clearBtn.onclick = () => {
 
         question.value = "";
+
         autoGrow();
 
         resetUI();
 
         tableContainer.innerHTML = "";
-
     };
 
-    chips.onclick = e => {
 
-        const chip = e.target.closest(".chip");
+    // ---------- EXAMPLE CHIPS ----------
 
-        if (!chip) return;
+    chips.onclick = event => {
 
-        question.value = chip.textContent;
+        const chip =
+            event.target.closest(".chip");
+
+
+        if (!chip) {
+            return;
+        }
+
+
+        question.value =
+            chip.textContent;
+
 
         autoGrow();
 
-        runQuery(chip.textContent, 1);
 
+        runQuery(
+            chip.textContent,
+            1
+        );
     };
 
-    question.addEventListener("input", autoGrow);
+
+    // ---------- TEXTAREA ----------
+
+    question.addEventListener(
+        "input",
+        autoGrow
+    );
+
+
+    // ---------- INITIALIZE ----------
 
     autoGrow();
+
     loadHistory();
 
 })();
