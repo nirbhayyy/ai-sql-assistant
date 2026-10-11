@@ -1,3 +1,4 @@
+
 /**
  * chartt.js
  * Handles Bar, Line, Pie & KPI
@@ -27,8 +28,13 @@
         "#84CC16"
     ];
 
-    const hide = (el) => el && (el.hidden = true);
-    const show = (el) => el && (el.hidden = false);
+    const hide = (el) => {
+        if (el) el.hidden = true;
+    };
+
+    const show = (el) => {
+        if (el) el.hidden = false;
+    };
 
     function destroyChart() {
         if (chartInstance) {
@@ -44,62 +50,91 @@
     }
 
     function renderChart(chart) {
-
         hideVisuals();
 
         if (!chart) return;
 
-        /* ---------- KPI ---------- */
-
+        // KPI card
         if (chart.type === "kpi") {
+            if (!kpiValue || !kpiLabel || !kpiPanel) return;
 
-            destroyChart();
+            const value = Number(chart.value);
 
-            hide(chartPanel);
-            show(kpiPanel);
-
-            kpiValue.textContent = Number(chart.value).toLocaleString();
+            kpiValue.textContent = Number.isFinite(value)
+                ? value.toLocaleString()
+                : String(chart.value ?? "—");
 
             kpiLabel.textContent = chart.label || "Result";
 
+            show(kpiPanel);
             return;
         }
 
-        /* ---------- BAR / LINE / PIE ---------- */
+        // Check required chart elements
+        if (!chartCanvas || !chartPanel || !chartTitle) {
+            console.error("Chart elements are missing from the HTML.");
+            return;
+        }
 
+        // Check Chart.js
         if (typeof Chart === "undefined") {
-            console.error("Chart.js not loaded");
+            console.error("Chart.js is not loaded.");
             return;
         }
 
-        show(chartPanel);
+        const supportedTypes = ["bar", "line", "pie"];
+
+        if (!supportedTypes.includes(chart.type)) {
+            console.error("Unsupported chart type:", chart.type);
+            return;
+        }
+
+        const labels = Array.isArray(chart.labels)
+            ? chart.labels
+            : [];
+
+        const values = Array.isArray(chart.values)
+            ? chart.values
+            : [];
+
+        if (labels.length === 0 || values.length === 0) {
+            console.warn("No chart data available.");
+            return;
+        }
+
+        const isPie = chart.type === "pie";
+        const isLine = chart.type === "line";
 
         chartTitle.textContent = chart.title || "Analytics";
 
-        const ctx = chartCanvas.getContext("2d");
-
-        const isPie = chart.type === "pie";
-
-        chartInstance = new Chart(ctx, {
-
+        chartInstance = new Chart(chartCanvas.getContext("2d"), {
             type: chart.type,
 
             data: {
-                labels: chart.labels || [],
+                labels: labels,
+
                 datasets: [{
-                    label: chart.y_label || "",
-                    data: chart.values || [],
-                    backgroundColor: isPie ? COLORS : "#2563EB",
-                    borderColor: isPie ? "#FFFFFF" : "#1D4ED8",
+                    label: chart.y_label || "Value",
+                    data: values,
+
+                    backgroundColor: isPie
+                        ? COLORS
+                        : isLine
+                            ? "#2563EB33"
+                            : "#2563EB",
+
+                    borderColor: isPie
+                        ? "#FFFFFF"
+                        : "#2563EB",
+
                     borderWidth: 2,
                     tension: 0.35,
-                    fill: chart.type === "line" ? false : true,
-                    pointRadius: chart.type === "line" ? 4 : 0
+                    fill: isLine,
+                    pointRadius: isLine ? 4 : 0
                 }]
             },
 
             options: {
-
                 responsive: true,
                 maintainAspectRatio: false,
 
@@ -109,36 +144,39 @@
                         position: "bottom"
                     },
 
-                    // We already show the title in HTML
                     title: {
                         display: false
                     }
                 },
 
-                scales: isPie ? {} : {
-
-                    x: {
-                        title: {
-                            display: !!chart.x_label,
-                            text: chart.x_label
+                scales: isPie
+                    ? {}
+                    : {
+                        x: {
+                            title: {
+                                display: Boolean(chart.x_label),
+                                text: chart.x_label || ""
+                            },
+                            grid: {
+                                display: false
+                            }
                         },
-                        grid: {
-                            display: false
-                        }
-                    },
 
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: !!chart.y_label,
-                            text: chart.y_label
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: Boolean(chart.y_label),
+                                text: chart.y_label || ""
+                            }
                         }
                     }
-                }
             }
         });
+
+        show(chartPanel);
     }
 
+    // Make functions available to app.js
     window.renderChart = renderChart;
     window.hideVisuals = hideVisuals;
 

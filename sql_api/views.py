@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from .serializers import QuerySerializer
 from RAG.genrator import genrate_sql
-from RAG.executor import execuute_sql,save_history
+from RAG.executor import execuute_sql,save_history,engine
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from RAG.executor import engine
@@ -17,7 +17,7 @@ def query_api(request):
     serializer.is_valid(raise_exception=True)
 
     question=serializer.validated_data['question']
-    sql=genrate_sql(question)
+    sql=genrate_sql(question,engine)
     df,time=execuute_sql(sql)
     save_history(question,sql,time)
     rows=df.to_dict(orient='records')
