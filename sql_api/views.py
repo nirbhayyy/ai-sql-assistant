@@ -9,42 +9,173 @@ from sqlalchemy import text
 from .pagination import QueryPagination
 from .util import detect_chart,genrate_insides
 from RAG.dashboard_genrator import genrate_dashboards
+import logging
+from sqlalchemy.exc import SQLAlchemyError
+logger = logging.getLogger(__name__)
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 def query_api(request):
-    serializer=QuerySerializer(data=request.data)
+    # 1. Validate request
+    serializer = QuerySerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    question=serializer.validated_data['question']
-    sql=genrate_sql(question,engine)
-    if sql.strip()== 'UNSAFE_REQUEST':
-        return Response({
-            'success':False,
-            'message':(
-                 "This request involves a database modification "
-                "and is not allowed. Only read-only queries are supported."
-            ),'sql':None
-        },status=400)
-    print("genrated of sql: ",repr(sql))
-    df,time=execuute_sql(sql)
-    save_history(question,sql,time)
-    rows=df.to_dict(orient='records')
-    chart=detect_chart(df)
-    insides=genrate_insides(df)
-    paginator=QueryPagination()
-    page=paginator.paginate_queryset(rows,request)
+    question = serializer.validated_data["question"]
 
+    
+    try:
+        sql = genrate_sql(question, engine)
 
-    return paginator.get_paginated_response({
-        'quesion':question,
-        'sql':sql,
-        'execution_time':time,
-        'row_count':len(rows),
-        'chart':chart,
-        "insight": insides,
-        'data':page
-    })
+    except RuntimeError as exc:
+        error_message = str(exc)
+        logger.warning("SQL generation failed: %s", error_message)
+
+        if "rate limit" in error_message.lower():
+            return Response(
+                {
+                    "success": False,
+                    "message": (
+                        "The AI service is temporarily rate-limited. "
+                        "Please wait a few seconds and try again."
+                    ),
+                    "sql": None,
+                },
+                status=429,
+            )
+
+        return Response(
+            {
+                "success": False,
+                "message": (
+                    "SQL generation is temporarily unavailable. "
+                    "Please try again."
+                ),
+                "sql": None,
+            },
+            status=503,
+        )
+
+    except Exception:
+        logger.exception("Unexpected SQL generation error")
+
+        return Response(
+            {
+                "success": False,
+                "message": "An unexpected error occurred while generating SQL.",
+                "sql": None,
+            },
+            status=500,
+        )
+
+    
+    if not isinstance(sql, str):
+        return Response(
+            {
+                "success": False,
+                "message": "The AI returned an invalid response.",
+                "sql": None,
+            },
+            status=502,
+        )
+
+    sql = sql.strip()
+
+    if sql == "UNSAFE_REQUEST":
+        return Response(
+            {
+                "success": False,
+                "message": (
+                    "This request involves a database modification "
+                    "and is not allowed. Only read-only queries are supported."
+                ),
+                "sql": None,
+            },
+            status=400,
+        )
+
+    
+    try:
+        df, execution_time = execuute_sql(sql)
+
+    except ValueError:
+        logger.warning("SQL rejected by safety validation")
+
+        return Response(
+            {
+                "success": False,
+                "message": (
+                    "The generated query did not pass SQL safety validation."
+                ),
+                "sql": None,
+            },
+            status=400,
+        )
+
+    except SQLAlchemyError:
+        logger.exception("SQL execution failed")
+
+        return Response(
+            {
+                "success": False,
+                "message": (
+                    "The query could not be executed. "
+                    "Please try a different question."
+                ),
+                "sql": None,
+            },
+            status=400,
+        )
+
+    except Exception:
+        logger.exception("Unexpected SQL execution error")
+
+        return Response(
+            {
+                "success": False,
+                "message": "An unexpected error occurred while executing the query.",
+                "sql": None,
+            },
+            status=500,
+        )
+
+    
+    rows = df.to_dict(orient="records")
+
+    
+    try:
+        save_history(question, sql, execution_time)
+    except Exception:
+        logger.exception("Failed to save query history")
+
+    
+    try:
+        chart = detect_chart(df)
+    except Exception:
+        logger.exception("Chart generation failed")
+        chart = None
+
+    try:
+        insights = genrate_insides(df)
+    except Exception:
+        logger.exception("Insight generation failed")
+        insights = None
+
+    
+    paginator = QueryPagination()
+    page = paginator.paginate_queryset(rows, request)
+
+    return paginator.get_paginated_response(
+        {
+            "quesion": question,
+            "sql": sql,
+            "execution_time": execution_time,
+            "row_count": len(rows),
+            "chart": chart,
+            "insight": insights,
+            "data": page,
+        }
+    )
+
 
 def home(request):
     return render(request, 'index.html')
