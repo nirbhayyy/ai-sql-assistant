@@ -18,6 +18,15 @@ def query_api(request):
 
     question=serializer.validated_data['question']
     sql=genrate_sql(question,engine)
+    if sql.strip()== 'UNSAFE_REQUEST':
+        return Response({
+            'success':False,
+            'message':(
+                 "This request involves a database modification "
+                "and is not allowed. Only read-only queries are supported."
+            ),'sql':None
+        },status=400)
+    print("genrated of sql: ",repr(sql))
     df,time=execuute_sql(sql)
     save_history(question,sql,time)
     rows=df.to_dict(orient='records')
