@@ -1,5 +1,7 @@
 from django.urls import path
-from .views import query_api,home,history_query,dashboard_view,dash_board,dashboard_api
+from .views import (query_api,home,history_query,dashboard_view,
+                    dash_board,dashboard_api,registraton_Api,csrf_token_view,
+                    login_api,logout_api)
 
 urlpatterns = [
     path('',home,name='home'),
@@ -7,4 +9,8 @@ urlpatterns = [
     path('history/',history_query),
     path('dash-data/',dashboard_api),
     path('dash/',dash_board),
+    path('reg-api/',registraton_Api),
+    path('csrf/',csrf_token_view),
+    path('login/',login_api),
+    path('logout/',logout_api),
 ]

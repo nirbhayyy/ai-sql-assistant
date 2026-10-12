@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .serializers import QuerySerializer
+from .serializers import QuerySerializer,RegistrationSerializer
 from RAG.genrator import genrate_sql
 from RAG.executor import execuute_sql,save_history,engine
 from rest_framework.decorators import api_view
@@ -11,6 +11,13 @@ from .util import detect_chart,genrate_insides
 from RAG.dashboard_genrator import genrate_dashboards
 import logging
 from sqlalchemy.exc import SQLAlchemyError
+
+from rest_framework import status
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.http import JsonResponse
+from django.contrib.auth import login,logout,authenticate
+from rest_framework.permissions import AllowAny,IsAuthenticated
+from rest_framework.decorators import permission_classes
 logger = logging.getLogger(__name__)
 
 
@@ -176,6 +183,25 @@ def query_api(request):
         }
     )
 
+@api_view(['POST'])
+def registraton_Api(request):
+    serializer=RegistrationSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    User=serializer.save()
+
+    login(request,User)
+    return Response({
+        'success':True,
+        'message':'registation_done',
+        'user':{
+            'id':User.id,
+            'username':User.username,
+            'email':User.email,}
+    },status=status.HTTP_201_CREATED)
+
+
+
+
 
 def home(request):
     return render(request, 'index.html')
@@ -257,3 +283,49 @@ def dashboard_api(request):
             'Erorr':str(e)
         },status=500
         )
+
+@ensure_csrf_cookie
+def csrf_token_view(request):
+    return JsonResponse({
+        'message':'csrf tokken set'
+    })
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login_api(request):
+    username=request.data.get('username','').strip()
+    password=request.data.get('password','')
+
+    if not username or not password:
+        return Response({
+            'success':False,
+            'message':'the username or password is wrong'
+        },status=400)
+    user=authenticate(request,username=username,password=password)
+    if user is None:
+        return Response({
+            "success": False,
+            "message": "Invalid username or password."
+        },status=400)
+    login(request,user)
+    return Response({
+        "success": True,
+        "message": "Login successful.",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email
+        }
+    })
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def logout_api(request):
+    logout(request)
+
+    return Response({
+        "success": True,
+        "message": "Logout successful."
+    })
