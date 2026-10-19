@@ -18,10 +18,12 @@ from django.http import JsonResponse
 from django.contrib.auth import login,logout,authenticate
 from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.decorators import permission_classes
+from django.contrib.auth.decorators import login_required
 logger = logging.getLogger(__name__)
 
 
 @api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def query_api(request):
     # 1. Validate request
     serializer = QuerySerializer(data=request.data)
@@ -150,7 +152,7 @@ def query_api(request):
 
     
     try:
-        save_history(question, sql, execution_time)
+        save_history(request.user.id,question, sql, execution_time)
     except Exception:
         logger.exception("Failed to save query history")
 
@@ -202,41 +204,58 @@ def registraton_Api(request):
 
 
 
-
+login_required
 def home(request):
     return render(request, 'index.html')
 
-@api_view(['GET','DELETE'])
+
+@api_view(["GET", "DELETE"])
+@permission_classes([IsAuthenticated])
 def history_query(request):
-    if request.method=='GET':
+    if request.method == "GET":
         query = text("""
-        SELECT id,
-               question,
-               generated_sql,
-               execution_time,
-               created_at
-        FROM query_history
-        ORDER BY created_at DESC
-        LIMIT 20
-    """)
+            SELECT id,
+                   question,
+                   generated_sql,
+                   execution_time,
+                   created_at
+            FROM query_history
+            WHERE user_id = :user_id
+            ORDER BY created_at DESC
+            LIMIT 20
+        """)
 
         with engine.connect() as conn:
-            result=conn.execute(query)
+            result = conn.execute(query, {
+                "user_id": request.user.id
+            })
+
             data = [
                 {
                     "question": row.question,
                     "generated_sql": row.generated_sql,
                     "execution_time": float(row.execution_time),
                     "created_at": str(row.created_at)
-                }for row  in result]
-        
+                }
+                for row in result
+            ]
 
-            return Response(data)
+        return Response(data)
+
     with engine.begin() as conn:
-        conn.execute(text("DELETE FROM query_history"))
+        conn.execute(
+            text("""
+                DELETE FROM query_history
+                WHERE user_id = :user_id
+            """),
+            {"user_id": request.user.id}
+        )
+
     return Response({"message": "History cleared"})
 
+
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def dashboard_view(request):
     with engine.connect() as conn:
         total=conn.execute(text("""SELECT COUNT(*) FROM customers""")).scalar()
@@ -269,7 +288,7 @@ def dashboard_view(request):
             "values": [r.total for r in year]
         }
     })
-
+@login_required
 def dash_board(request):
     return render(request,'dashboard.html')
 
