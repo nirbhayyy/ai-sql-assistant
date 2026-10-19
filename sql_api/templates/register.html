@@ -1,0 +1,80 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | AI SQL Assistant</title>
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    <script src="{% static 'js/auth.js' %}" defer></script>
+</head>
+<body>
+    <main class="auth-container">
+        <section class="auth-card">
+            <div class="brand">
+                <div class="brand-icon">AI</div>
+                <h1>AI SQL Assistant</h1>
+                <p>Turn natural language into SQL queries.</p>
+            </div>
+
+            <h2>Create your account</h2>
+            <p class="subtitle">Get started with your SQL workspace.</p>
+
+            <form id="register-form">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="register-username">Username</label>
+                    <input
+                        type="text"
+                        id="register-username"
+                        name="username"
+                        placeholder="Choose a username"
+                        autocomplete="username"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="register-email">Email address</label>
+                    <input
+                        type="email"
+                        id="register-email"
+                        name="email"
+                        placeholder="you@example.com"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="register-password">Password</label>
+                    <input
+                        type="password"
+                        id="register-password"
+                        name="password"
+                        placeholder="At least 8 characters"
+                        autocomplete="new-password"
+                        minlength="8"
+                        required
+                    >
+                </div>
+
+                <div id="register-message" class="message"
+                     role="status" aria-live="polite"></div>
+
+                <button type="submit" id="register-button"
+                        class="auth-button">
+                    Create account
+                </button>
+            </form>
+
+            <p class="auth-footer">
+                Already have an account?
+                <a href="/api/login-page/">Log in</a>
+            </p>
+        </section>
+    </main>
+</body>
+</html>

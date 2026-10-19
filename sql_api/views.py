@@ -348,3 +348,10 @@ def logout_api(request):
         "success": True,
         "message": "Logout successful."
     })
+
+
+def login_page(request):
+    return render(request,'login.html')
+
+def register_page(request):
+    return render(request,'register.html')

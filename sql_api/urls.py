@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (query_api,home,history_query,dashboard_view,
                     dash_board,dashboard_api,registraton_Api,csrf_token_view,
-                    login_api,logout_api)
+                    login_api,logout_api,login_page,register_page)
 
 urlpatterns = [
     path('',home,name='home'),
@@ -13,4 +13,6 @@ urlpatterns = [
     path('csrf/',csrf_token_view),
     path('login/',login_api),
     path('logout/',logout_api),
+    path('login-page/',login_page),
+    path('reg-page/',register_page),
 ]
