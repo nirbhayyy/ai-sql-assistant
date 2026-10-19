@@ -1,24 +1,19 @@
-{% load static %}
-
-<!doctype html>
+{% load static %}<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <meta
       name="description"
       content="Ask questions about your data in plain English and get the SQL, a chart, and the results instantly."
     />
-
     <title>AI SQL Assistant</title>
-    <button type="button" id="logout-button">Logout</button>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
 
@@ -28,14 +23,41 @@
 
   <body>
     <!-- ================= HEADER ================= -->
-
     <header class="app-header">
-      <div class="brand">
-        <span class="brand-mark" aria-hidden="true"> SQL </span>
+      <div class="header-inner">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">SQL</span>
+          <div>
+            <h1>AI SQL Assistant</h1>
+            <p>Ask questions in plain English</p>
+          </div>
+        </div>
 
-        <div>
-          <h1>AI SQL Assistant</h1>
-          <p>Ask questions in plain English</p>
+        <div class="header-actions">
+          <nav class="top-nav" aria-label="Pages">
+            <a class="nav-btn active" href="#" aria-current="page">Assistant</a>
+            <a class="nav-btn" href="/api/dash/">Dashboard</a>
+          </nav>
+
+          <div class="account-menu">
+            <button
+              type="button"
+              id="account-toggle"
+              class="account-toggle"
+              aria-expanded="false"
+              aria-controls="account-dropdown"
+              aria-haspopup="true"
+            >
+              <span class="user-avatar" id="user-avatar" aria-hidden="true">U</span>
+              <span id="navbar-username">Loading…</span>
+              <span class="caret" aria-hidden="true">▾</span>
+            </button>
+
+            <div id="account-dropdown" class="account-dropdown" hidden>
+              <a href="#history-heading" id="history-link">Query history</a>
+              <button type="button" id="logout-button">Logout</button>
+            </div>
+          </div>
         </div>
       </div>
     </header>
@@ -43,42 +65,20 @@
     <div class="app">
       <div class="workbench">
         <!-- ================= SIDEBAR ================= -->
-
         <aside class="rail" aria-label="Example queries and history">
-          <!-- Example Queries -->
-
           <section class="rail-section" aria-labelledby="examples-heading">
-            <h2 id="examples-heading">Example Queries</h2>
+            <h2 id="examples-heading">Try an example</h2>
 
             <div class="chip-list" id="examples">
-              <button class="chip" type="button">
-                Count customers in each city
-              </button>
-
-              <button class="chip" type="button">
-                Show customer registrations by year
-              </button>
-
-              <button class="chip" type="button">
-                Show customer distribution by city
-              </button>
-
-              <button class="chip" type="button">
-                How many customers are there?
-              </button>
+              <button class="chip" type="button">Count customers in each city</button>
+              <button class="chip" type="button">Show customer registrations by year</button>
+              <button class="chip" type="button">Show customer distribution by city</button>
+              <button class="chip" type="button">How many customers are there?</button>
             </div>
           </section>
 
-          <!-- History -->
-
-          <section class="rail-section" aria-labelledby="history-heading">
-            <div class="rail-section-head">
-              <h2 id="history-heading">History</h2>
-
-              <button id="clear-history" class="text-btn" type="button">
-                Clear
-              </button>
-            </div>
+          <section class="rail-section" aria-labelledby="history-heading" id="history-section">
+            <h2 id="history-heading">Recent queries</h2>
 
             <ul id="history-list" class="history-list">
               <li class="empty-hint">Recent queries will appear here.</li>
@@ -87,10 +87,8 @@
         </aside>
 
         <!-- ================= MAIN ================= -->
-
         <main class="main">
-          <!-- ================= ASK FORM ================= -->
-
+          <!-- ASK FORM -->
           <form id="ask-form" class="ask-form">
             {% csrf_token %}
 
@@ -102,26 +100,24 @@
               id="question"
               rows="1"
               placeholder="e.g. Count customers in each city"
+              autocomplete="off"
+              spellcheck="false"
             ></textarea>
 
             <div class="ask-actions">
               <span class="hint">
-                <kbd>Ctrl</kbd> +
-                <kbd>Enter</kbd>
+                <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to run
               </span>
 
-              <button id="clear-btn" type="button" class="btn-ghost">
-                Clear
-              </button>
+              <button id="clear-btn" type="button" class="btn-ghost">Clear</button>
 
               <button id="ask-btn" type="submit" class="btn-primary">
-                <span id="ask-btn-label"> Run </span>
+                <span id="ask-btn-label">Run</span>
               </button>
             </div>
           </form>
 
-          <!-- ================= ERROR ================= -->
-
+          <!-- ERROR -->
           <section
             id="error-panel"
             class="panel"
@@ -130,160 +126,98 @@
             hidden
           >
             <div class="error-box">
-              <strong> Something went wrong </strong>
-
+              <strong>Something went wrong</strong>
               <p id="error-message"></p>
             </div>
           </section>
 
-          <!-- ================= SQL ================= -->
+          <!-- LOADING SKELETON -->
+          <div id="loading" class="loading" aria-hidden="true" hidden>
+            <div class="skeleton skeleton-line"></div>
+            <div class="skeleton skeleton-block"></div>
+            <div class="skeleton skeleton-block short"></div>
+          </div>
 
-          <section
-            id="sql-panel"
-            class="panel"
-            aria-labelledby="sql-heading"
-            hidden
-          >
+          <!-- SQL -->
+          <section id="sql-panel" class="panel" aria-labelledby="sql-heading" hidden>
             <div class="panel-head">
               <h3 id="sql-heading">Generated SQL</h3>
-
               <button id="copy-sql" class="text-btn" type="button">Copy</button>
             </div>
-
             <pre id="sql"><code></code></pre>
           </section>
 
-          <!-- ================= STATS ================= -->
-
-          <div
-            id="stats-row"
-            class="stats-row"
-            role="status"
-            aria-live="polite"
-            hidden
-          >
+          <!-- STATS -->
+          <div id="stats-row" class="stats-row" role="status" aria-live="polite" hidden>
             <div class="stat">
-              <span id="rows" class="stat-value"> 0 </span>
-
-              <span class="stat-label"> Rows </span>
+              <span id="rows" class="stat-value">0</span>
+              <span class="stat-label">Rows</span>
             </div>
-
             <div class="stat">
-              <span id="time" class="stat-value"> 0 ms </span>
-
-              <span class="stat-label"> Execution </span>
+              <span id="time" class="stat-value">0 s</span>
+              <span class="stat-label">Execution</span>
             </div>
           </div>
 
-          <!-- ================= CHART ================= -->
+          <!-- AI INSIGHT -->
+          <section id="insight-panel" class="panel insight" aria-labelledby="insight-heading" hidden>
+            <div class="panel-head">
+              <h3 id="insight-heading">AI Insight</h3>
+            </div>
+            <p id="insightText"></p>
+          </section>
 
-          <section
-            id="chart-panel"
-            class="panel"
-            aria-labelledby="chart-title"
-            hidden
-          >
+          <!-- CHART -->
+          <section id="chart-panel" class="panel" aria-labelledby="chart-title" hidden>
             <div class="panel-head">
               <h3 id="chart-title">Analytics</h3>
             </div>
-
             <div id="chart-container">
-              <canvas
-                id="chart"
-                role="img"
-                aria-label="Chart of the query results"
-              >
-              </canvas>
+              <canvas id="chart" role="img" aria-label="Chart of the query results"></canvas>
             </div>
           </section>
 
-          <!-- ================= KPI ================= -->
-
-          <section
-            id="kpi-panel"
-            class="panel"
-            aria-labelledby="kpi-heading"
-            hidden
-          >
+          <!-- KPI -->
+          <section id="kpi-panel" class="panel" aria-labelledby="kpi-heading" hidden>
             <div class="panel-head">
               <h3 id="kpi-heading">Result</h3>
             </div>
-
             <div class="kpi-display">
               <h1 id="kpi-value">0</h1>
-
               <p id="kpi-label">Metric</p>
             </div>
           </section>
 
-          <!-- ================= AI INSIGHT ================= -->
-
-          <section
-            id="insight-panel"
-            class="panel"
-            aria-labelledby="insight-heading"
-            hidden
-          >
-            <div class="panel-head">
-              <h3 id="insight-heading">AI Insight</h3>
-            </div>
-
-            <p id="insightText"></p>
-          </section>
-
-          <!-- ================= RESULTS TABLE ================= -->
-
-          <section
-            id="results-panel"
-            class="panel"
-            aria-labelledby="results-heading"
-            hidden
-          >
+          <!-- RESULTS TABLE -->
+          <section id="results-panel" class="panel" aria-labelledby="results-heading" hidden>
             <div class="panel-head">
               <h3 id="results-heading">Results</h3>
-
-              <button id="export-csv" class="text-btn" type="button">
-                Export CSV
-              </button>
+              <button id="export-csv" class="text-btn" type="button">Export CSV</button>
             </div>
-
             <div id="table-container"></div>
           </section>
 
-          <!-- ================= PAGINATION ================= -->
-
-          <nav
-            id="pagination"
-            class="pagination"
-            aria-label="Results pages"
-            hidden
-          >
-            <button id="prevBtn" type="button">Previous</button>
-
+          <!-- PAGINATION -->
+          <nav id="pagination" class="pagination" aria-label="Results pages" hidden>
+            <button id="prevBtn" type="button">← Previous</button>
             <span id="pageNo"></span>
-
-            <button id="nextBtn" type="button">Next</button>
+            <button id="nextBtn" type="button">Next →</button>
           </nav>
 
-          <!-- ================= EMPTY STATE ================= -->
-
+          <!-- EMPTY STATE -->
           <div id="empty-state" class="empty-state">
-            <p>Ask a SQL question to begin.</p>
+            <p class="empty-title">Ask a question to begin</p>
+            <p class="empty-sub">Pick an example on the left or type your own question above.</p>
           </div>
         </main>
       </div>
     </div>
 
     <!-- ================= SCRIPTS ================= -->
-
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Custom Chart JS -->
     <script src="{% static 'js/chartt.js' %}"></script>
-
-    <!-- Main App JS -->
     <script src="{% static 'js/app.js' %}"></script>
     <script src="{% static 'js/auth.js' %}" defer></script>
+    <script src="{% static 'js/account.js' %}" defer></script>
   </body>
 </html>

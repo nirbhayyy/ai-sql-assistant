@@ -355,3 +355,13 @@ def login_page(request):
 
 def register_page(request):
     return render(request,'register.html')
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def getUser(request):
+    return Response({
+        'username':request.user.username,
+        'email':request.user.email,
+        'Is_Authenticated': True
+    })
