@@ -19,15 +19,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Load the logged-in user's details
     try {
-        const response = await fetch("/api/me/", {
-            method: "GET",
-            credentials: "same-origin"
-        });
-
-        if (response.status === 401 || response.status === 403) {
-            window.location.replace("/api/login-page/");
-            return;
-        }
+        // APIClient redirects to the login page on 401/403.
+        const response = await APIClient.fetch("/api/me/");
 
         if (!response.ok) {
             throw new Error("Unable to load account details");

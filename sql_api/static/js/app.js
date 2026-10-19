@@ -182,7 +182,7 @@
         if (!historyList) return;
 
         try {
-            const response = await fetch("/api/history/", { credentials: "same-origin" });
+            const response = await APIClient.fetch("/api/history/");
 
             if (!response.ok) throw new Error("Could not load query history.");
 
@@ -260,11 +260,10 @@
         setLoading(true);
 
         try {
-            const response = await fetch(
+            const response = await APIClient.fetch(
                 `/api/query/?page=${page}&page_size=${PAGE_SIZE}`,
                 {
                     method: "POST",
-                    credentials: "same-origin",
                     headers: {
                         "Content-Type": "application/json",
                         "X-CSRFToken": getCSRFToken()
