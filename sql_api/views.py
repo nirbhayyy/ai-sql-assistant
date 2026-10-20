@@ -20,7 +20,7 @@ from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.decorators import permission_classes
 from django.contrib.auth.decorators import login_required
 
-from RAG.user_databse import test_prostgres_connection
+from RAG.user_databse import test_prostgres_connection,get_database_schema
 logger = logging.getLogger(__name__)
 
 
@@ -409,5 +409,51 @@ def test_databse_conn(request):
             "success": False,
             "message": str(e)
             },
+        status=status.HTTP_400_BAD_REQUEST
+    )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def get_user_database_schema(request):
+    data=request.data
+
+    required_fields = [
+        "host",
+        "port",
+        "database",
+        "username",
+        "password"
+    ]
+
+    if any(not data.get(field) for field in required_fields):
+        return Response(
+            {"error": "All database fields are required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        schema = get_database_schema(
+            host=data["host"],
+            port=data["port"],
+            database=data["database"],
+            username=data["username"],
+            password=data["password"]
+        )
+
+        return Response({
+            "success": True,
+            "tables": schema
+        })
+
+    except Exception as e:
+        import logging
+        logging.exception("Schema retrieval failed")
+
+        return Response(
+        {
+            "success": False,
+            "message": str(e)
+        },
         status=status.HTTP_400_BAD_REQUEST
     )
