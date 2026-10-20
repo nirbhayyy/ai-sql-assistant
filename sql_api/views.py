@@ -19,6 +19,8 @@ from django.contrib.auth import login,logout,authenticate
 from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.decorators import permission_classes
 from django.contrib.auth.decorators import login_required
+
+from RAG.user_databse import test_prostgres_connection
 logger = logging.getLogger(__name__)
 
 
@@ -365,3 +367,47 @@ def getUser(request):
         'email':request.user.email,
         'Is_Authenticated': True
     })
+
+
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def test_databse_conn(request):
+    data=request.data
+
+    required_fields = [
+        "host",
+        "port",
+        "database",
+        "username",
+        "password"
+    ]
+
+    if any(not data.get(field) for field in required_fields):
+        return Response(
+            {"error": "All database fields are required"},
+            status=status.HTTP_400_BAD_REQUEST
+          )
+    try:
+        result = test_prostgres_connection(
+            host=data["host"],
+            port=data["port"],
+            database=data["database"],
+            username=data["username"],
+            password=data["password"]
+        )
+
+        return Response(result)
+
+    except Exception as e:
+        import logging
+        logging.exception("User database connection failed")
+
+        return Response(
+            {
+            "success": False,
+            "message": str(e)
+            },
+        status=status.HTTP_400_BAD_REQUEST
+    )
