@@ -20,14 +20,19 @@ from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.decorators import permission_classes
 from django.contrib.auth.decorators import login_required
 
-from RAG.user_databse import test_prostgres_connection,get_database_schema
+from sql_api.models import DatabaseConnection
+from sql_api.serializers import DatabaseConnectionSerializer 
+from RAG.credential_encryption import encrypt_password,decrypt_password
+from sqlalchemy import inspect
+
+from RAG.user_databse import test_postgres_connection,get_saved_connection_engine
 logger = logging.getLogger(__name__)
 
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def query_api(request):
-    # 1. Validate request
+    
     serializer = QuerySerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
@@ -390,7 +395,7 @@ def test_databse_conn(request):
             status=status.HTTP_400_BAD_REQUEST
           )
     try:
-        result = test_prostgres_connection(
+        result = test_postgres_connection(
             host=data["host"],
             port=data["port"],
             database=data["database"],
@@ -413,47 +418,194 @@ def test_databse_conn(request):
     )
 
 
-@api_view(['POST'])
+
+
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def get_user_database_schema(request):
-    data=request.data
+def get_saved_db_schema(request):
+    connection_id = request.data.get("connection_id")
 
-    required_fields = [
-        "host",
-        "port",
-        "database",
-        "username",
-        "password"
-    ]
-
-    if any(not data.get(field) for field in required_fields):
+    if not connection_id:
         return Response(
-            {"error": "All database fields are required"},
+            {"success": False, "message": "connection_id is required."},
             status=status.HTTP_400_BAD_REQUEST
         )
 
     try:
-        schema = get_database_schema(
+        connection = DatabaseConnection.objects.get(
+            id=connection_id,
+            user=request.user
+        )
+    except (DatabaseConnection.DoesNotExist, ValueError, TypeError):
+        return Response(
+            {"success": False, "message": "Database connection not found."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    engine = None
+
+    try:
+        engine = get_saved_connection_engine(connection)
+        inspector = inspect(engine)
+
+        tables = inspector.get_table_names(schema="public")
+        schema = {}
+
+        for table in tables:
+            columns = inspector.get_columns(table, schema="public")
+            foreign_keys = inspector.get_foreign_keys(table, schema="public")
+
+            schema[table] = {
+                "columns": [
+                    {
+                        "name": column["name"],
+                        "type": str(column["type"]),
+                        "nullable": column["nullable"]
+                    }
+                    for column in columns
+                ],
+                "foreign_keys": [
+                    {
+                        "columns": fk["constrained_columns"],
+                        "referenced_table": fk["referred_table"],
+                        "referenced_columns": fk["referred_columns"]
+                    }
+                    for fk in foreign_keys
+                ]
+            }
+
+        return Response({
+            "success": True,
+            "connection_id": connection.id,
+            "connection_name": connection.name,
+            "tables": schema
+        })
+
+    except Exception:
+        logger.exception("Saved database schema retrieval failed")
+        return Response(
+            {
+                "success": False,
+                "message": "Could not retrieve the saved database schema."
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    finally:
+        if engine is not None:
+            engine.dispose()
+
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def save_db_connection(request):
+    serializer=DatabaseConnectionSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    data=serializer.validated_data
+
+    try:
+        result = test_postgres_connection(
             host=data["host"],
             port=data["port"],
             database=data["database"],
             username=data["username"],
-            password=data["password"]
+            password=data["password"],
+        )
+        if not result.get("success"):
+            return Response(
+                {
+                    "success": False,
+                    "message": "Could not connect to the database.",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+    except (SQLAlchemyError, ValueError):
+        return Response(
+            {
+                "success": False,
+                "message": (
+                    "Database connection failed. "
+                    "Check the host, port, database, username, and password."
+                ),
+            },
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
-        return Response({
-            "success": True,
-            "tables": schema
-        })
-
-    except Exception as e:
-        import logging
-        logging.exception("Schema retrieval failed")
-
+    except Exception:
+        logger.exception("Unexpected database connection error")
         return Response(
+            {
+                "success": False,
+                "message": "An unexpected error occurred while testing the connection.",
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+    try:
+        encrypted_password = encrypt_password(data["password"])
+
+        connection = DatabaseConnection.objects.create(
+            user=request.user,
+            name=data["name"],
+            db_type="postgresql",
+            host=data["host"],
+            port=data["port"],
+            database=data["database"],
+            username=data["username"],
+            encrypt_password=encrypted_password,
+        )
+    except Exception:
+        logger.exception("Failed to save database connection")
+        return Response(
+            {
+                "success": False,
+                "message": "The connection was tested, but could not be saved.",
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+    return Response(
         {
-            "success": False,
-            "message": str(e)
+            "success": True,
+            "message": "Database connection saved successfully.",
+            "connection": {
+                "id": connection.id,
+                "name": connection.name,
+                "db_type": connection.db_type,
+                "host": connection.host,
+                "port": connection.port,
+                "database": connection.database,
+                "username": connection.username,
+                "created_at": connection.create_at,
+            },
         },
-        status=status.HTTP_400_BAD_REQUEST
+        status=status.HTTP_201_CREATED,
     )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_db_connections(request):
+    connections = DatabaseConnection.objects.filter(
+        user=request.user
+    ).order_by("-create_at")
+
+    results = [
+        {
+            "id": connection.id,
+            "name": connection.name,
+            "db_type": connection.db_type,
+            "host": connection.host,
+            "port": connection.port,
+            "database": connection.database,
+            "username": connection.username,
+            "created_at": connection.create_at,
+        }
+        for connection in connections
+    ]
+
+    return Response({
+        "success": True,
+        "count": len(results),
+        "connections": results,
+    })

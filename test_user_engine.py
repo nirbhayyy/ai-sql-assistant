@@ -1,34 +1,11 @@
 import os
-import django
+from dotenv import load_dotenv
 
-os.environ.setdefault(
-    "DJANGO_SETTINGS_MODULE",
-    "config.settings"
-)
+load_dotenv()
 
-django.setup()
+DB_ENCRYPTION_KEY = os.getenv("DB_ENCRYPTION_KEY")
 
-from sql_api.models import DatabaseConnection
-from RAG.database_connection import create_user_engine
-from RAG.schema_analyzer import build_database_context
-from RAG.relationship_analyzer import get_relationships
+if not DB_ENCRYPTION_KEY:
+    raise ValueError("DB_ENCRYPTION_KEY is missing from environment variables")
 
-
-connection = DatabaseConnection.objects.get(id=1)
-
-engine = create_user_engine(connection)
-
-try:
-
-    relationships = get_relationships(engine)
-
-    context = build_database_context(
-        engine,
-        relationships
-    )
-
-    print("\n===== DATABASE CONTEXT =====")
-    print(context)
-
-finally:
-    engine.dispose()
+print("Encryption key loaded:", bool(DB_ENCRYPTION_KEY))

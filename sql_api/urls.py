@@ -2,7 +2,8 @@ from django.urls import path
 from .views import (query_api,home,history_query,dashboard_view,
                     dash_board,dashboard_api,registraton_Api,csrf_token_view,
                     login_api,logout_api,login_page,register_page,getUser,
-                    test_databse_conn,get_user_database_schema)
+                    test_databse_conn,save_db_connection,
+                    list_db_connections,get_saved_db_schema)
 
 urlpatterns = [
     path('',home,name='home'),
@@ -18,5 +19,8 @@ urlpatterns = [
     path('reg-page/',register_page),
     path('me/',getUser),
     path('test-db-conn/',test_databse_conn),
-    path('db-schema/',get_user_database_schema),
+    path('db-schema/',get_saved_db_schema),
+    path('db-conn/',save_db_connection),
+    path('db-ls/',list_db_connections),
+
 ]

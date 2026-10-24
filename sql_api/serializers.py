@@ -28,3 +28,21 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
     def create(self,validate_data):
         return User.objects.create_user(**validate_data)
+
+
+class DatabaseConnectionSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=500)
+    host = serializers.CharField(max_length=255)
+    port = serializers.IntegerField(
+        min_value=1,
+        max_value=65535,
+        default=5432
+    )
+    database = serializers.CharField(max_length=255)
+    username = serializers.CharField(max_length=255)
+    password = serializers.CharField(
+        write_only=True,
+        trim_whitespace=False,
+        allow_blank=False,
+        max_length=1024
+    )
