@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 User=get_user_model()
 class QuerySerializer(serializers.Serializer):
+    connection_id=serializers.IntegerField(min_value=1)
     question=serializers.CharField(max_length=500)
 
 class RegistrationSerializer(serializers.ModelSerializer):

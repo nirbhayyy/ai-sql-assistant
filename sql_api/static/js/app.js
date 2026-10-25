@@ -8,6 +8,7 @@
 
     const form = $("ask-form");
     const question = $("question");
+    const connectionSelect = $("connection-select");
 
     const askBtn = $("ask-btn");
     const askLabel = $("ask-btn-label");
@@ -47,7 +48,8 @@
     let currentPage = 1;
     let totalPages = 1;
     let currentRows = [];
-    let requestId = 0; // guards against out-of-order responses
+    let requestId = 0;
+    let currentConnectionId = null;
 
     // ---------- CSRF ----------
     function getCSRFToken() {
@@ -249,12 +251,69 @@
     }
 
     // ---------- MAIN API ----------
+    
+    // ---------- DATABASE CONNECTIONS ----------
+    async function loadConnections() {
+        if (!connectionSelect) return;
+
+        connectionSelect.disabled = true;
+        connectionSelect.innerHTML =
+            '<option value="">Loading connections...</option>';
+
+        try {
+            const connections = await APIClient.getConnections();
+
+            connectionSelect.innerHTML = "";
+
+            if (!connections.length) {
+                connectionSelect.add(
+                    new Option("No saved databases found", "")
+                );
+                return;
+            }
+
+            connections.forEach(connection => {
+                const label =
+                    `${connection.name} (${connection.database})`;
+
+                connectionSelect.add(
+                    new Option(label, String(connection.id))
+                );
+            });
+
+            // Select the first saved connection by default.
+            connectionSelect.selectedIndex = 0;
+        } catch (error) {
+            console.error("Connection loading error:", error);
+
+            connectionSelect.innerHTML = "";
+            connectionSelect.add(
+                new Option("Could not load databases", "")
+            );
+
+            showError(error.message || "Could not load saved databases.");
+        } finally {
+            connectionSelect.disabled = false;
+        }
+    }
+
     async function runQuery(queryText, page = 1) {
         if (!queryText || !queryText.trim()) return;
 
-        const thisRequest = ++requestId;
+if (!connectionSelect || !connectionSelect.value) {
+    showError("Please select a saved database before running a query.");
+    return;
+}
 
-        currentQuestion = queryText;
+const thisRequest = ++requestId;
+
+// Use the selected connection for a new query.
+// Keep the same connection when navigating result pages.
+if (page === 1 || !currentConnectionId) {
+    currentConnectionId = connectionSelect.value;
+}
+
+currentQuestion = queryText;
         resetUI();
         hide(emptyState);
         setLoading(true);
@@ -268,7 +327,10 @@
                         "Content-Type": "application/json",
                         "X-CSRFToken": getCSRFToken()
                     },
-                    body: JSON.stringify({ question: queryText })
+                    body: JSON.stringify({
+                    connection_id: Number(currentConnectionId),
+                    question: queryText
+})
                 }
             );
 
@@ -307,7 +369,7 @@
             show(statsRow);
 
             // Insight
-            const insight = data.insights ?? data.insides;
+            const insight = data.insight ?? data.insights ?? data.insides;
             if (insight && insightText) {
                 insightText.textContent = insight;
                 show(insightPanel);
@@ -453,5 +515,6 @@
 
     // ---------- INITIALIZE ----------
     autoGrow();
+    loadConnections();
     loadHistory();
 })();

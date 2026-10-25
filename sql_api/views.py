@@ -29,168 +29,229 @@ from RAG.user_databse import test_postgres_connection,get_saved_connection_engin
 logger = logging.getLogger(__name__)
 
 
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def query_api(request):
-    
     serializer = QuerySerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
+    connection_id = serializer.validated_data["connection_id"]
     question = serializer.validated_data["question"]
 
-    
+    # 1. Get the selected connection belonging to this user.
     try:
-        sql = genrate_sql(question, engine)
+        connection = DatabaseConnection.objects.get(
+            id=connection_id,
+            user=request.user,
+        )
+    except DatabaseConnection.DoesNotExist:
+        return Response(
+            {
+                "success": False,
+                "message": "Database connection not found.",
+                "sql": None,
+            },
+            status=status.HTTP_404_NOT_FOUND,
+        )
 
-    except RuntimeError as exc:
-        error_message = str(exc)
-        logger.warning("SQL generation failed: %s", error_message)
+    engine = None
 
-        if "rate limit" in error_message.lower():
+    try:
+        # 2. Create an engine using the saved, encrypted credentials.
+        try:
+            engine = get_saved_connection_engine(connection)
+
+            # Verify the selected database is reachable.
+            with engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+
+        except Exception:
+            logger.exception("Failed to connect to saved database")
+            return Response(
+                {
+                    "success": False,
+                    "message": "Could not connect to the selected database.",
+                    "sql": None,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # 3. Generate SQL using the selected database's schema.
+        try:
+            sql = genrate_sql(question, engine)
+
+        except RuntimeError as exc:
+            error_message = str(exc)
+            logger.warning("SQL generation failed: %s", error_message)
+
+            if "rate limit" in error_message.lower():
+                return Response(
+                    {
+                        "success": False,
+                        "message": (
+                            "The AI service is temporarily rate-limited. "
+                            "Please wait a few seconds and try again."
+                        ),
+                        "sql": None,
+                    },
+                    status=status.HTTP_429_TOO_MANY_REQUESTS,
+                )
+
             return Response(
                 {
                     "success": False,
                     "message": (
-                        "The AI service is temporarily rate-limited. "
-                        "Please wait a few seconds and try again."
+                        "SQL generation is temporarily unavailable. "
+                        "Please try again."
                     ),
                     "sql": None,
                 },
-                status=429,
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-        return Response(
+        except Exception:
+            logger.exception("Unexpected SQL generation error")
+            return Response(
+                {
+                    "success": False,
+                    "message": (
+                        "An unexpected error occurred while generating SQL."
+                    ),
+                    "sql": None,
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        # 4. Validate the AI response.
+        if not isinstance(sql, str):
+            return Response(
+                {
+                    "success": False,
+                    "message": "The AI returned an invalid response.",
+                    "sql": None,
+                },
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        sql = sql.strip()
+
+        if sql == "UNSAFE_REQUEST":
+            return Response(
+                {
+                    "success": False,
+                    "message": (
+                        "Database modifications are not allowed. "
+                        "Only read-only queries are supported."
+                    ),
+                    "sql": None,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not sql:
+            return Response(
+                {
+                    "success": False,
+                    "message": "The AI returned an empty SQL query.",
+                    "sql": None,
+                },
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        # 5. Execute SQL against the SAME selected database.
+        try:
+            df, execution_time = execuute_sql(sql, engine=engine)
+
+        except ValueError:
+            logger.warning("SQL rejected by safety validation")
+            return Response(
+                {
+                    "success": False,
+                    "message": (
+                        "The generated query did not pass SQL safety validation."
+                    ),
+                    "sql": None,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        except SQLAlchemyError:
+            logger.exception("SQL execution failed")
+            return Response(
+                {
+                    "success": False,
+                    "message": (
+                        "The query could not be executed. "
+                        "Please try a different question."
+                    ),
+                    "sql": None,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        except Exception:
+            logger.exception("Unexpected SQL execution error")
+            return Response(
+                {
+                    "success": False,
+                    "message": (
+                        "An unexpected error occurred while executing the query."
+                    ),
+                    "sql": None,
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        # 6. Convert results to records.
+        rows = df.to_dict(orient="records")
+
+        # 7. Save query history.
+        try:
+            save_history(
+                request.user.id,
+                question,
+                sql,
+                execution_time,
+            )
+        except Exception:
+            logger.exception("Failed to save query history")
+
+        # 8. Generate chart data.
+        try:
+            chart = detect_chart(df)
+        except Exception:
+            logger.exception("Chart generation failed")
+            chart = None
+
+        # 9. Generate insights.
+        try:
+            insights = genrate_insides(df)
+        except Exception:
+            logger.exception("Insight generation failed")
+            insights = None
+
+        # 10. Paginate the results.
+        paginator = QueryPagination()
+        page = paginator.paginate_queryset(rows, request)
+
+        return paginator.get_paginated_response(
             {
-                "success": False,
-                "message": (
-                    "SQL generation is temporarily unavailable. "
-                    "Please try again."
-                ),
-                "sql": None,
-            },
-            status=503,
+                "question": question,
+                "sql": sql,
+                "execution_time": execution_time,
+                "row_count": len(rows),
+                "chart": chart,
+                "insight": insights,
+                "data": page,
+            }
         )
 
-    except Exception:
-        logger.exception("Unexpected SQL generation error")
+    finally:
+       
+        if engine is not None:
+            engine.dispose()
 
-        return Response(
-            {
-                "success": False,
-                "message": "An unexpected error occurred while generating SQL.",
-                "sql": None,
-            },
-            status=500,
-        )
-
-    
-    if not isinstance(sql, str):
-        return Response(
-            {
-                "success": False,
-                "message": "The AI returned an invalid response.",
-                "sql": None,
-            },
-            status=502,
-        )
-
-    sql = sql.strip()
-
-    if sql == "UNSAFE_REQUEST":
-        return Response(
-            {
-                "success": False,
-                "message": (
-                    "This request involves a database modification "
-                    "and is not allowed. Only read-only queries are supported."
-                ),
-                "sql": None,
-            },
-            status=400,
-        )
-
-    
-    try:
-        df, execution_time = execuute_sql(sql)
-
-    except ValueError:
-        logger.warning("SQL rejected by safety validation")
-
-        return Response(
-            {
-                "success": False,
-                "message": (
-                    "The generated query did not pass SQL safety validation."
-                ),
-                "sql": None,
-            },
-            status=400,
-        )
-
-    except SQLAlchemyError:
-        logger.exception("SQL execution failed")
-
-        return Response(
-            {
-                "success": False,
-                "message": (
-                    "The query could not be executed. "
-                    "Please try a different question."
-                ),
-                "sql": None,
-            },
-            status=400,
-        )
-
-    except Exception:
-        logger.exception("Unexpected SQL execution error")
-
-        return Response(
-            {
-                "success": False,
-                "message": "An unexpected error occurred while executing the query.",
-                "sql": None,
-            },
-            status=500,
-        )
-
-    
-    rows = df.to_dict(orient="records")
-
-    
-    try:
-        save_history(request.user.id,question, sql, execution_time)
-    except Exception:
-        logger.exception("Failed to save query history")
-
-    
-    try:
-        chart = detect_chart(df)
-    except Exception:
-        logger.exception("Chart generation failed")
-        chart = None
-
-    try:
-        insights = genrate_insides(df)
-    except Exception:
-        logger.exception("Insight generation failed")
-        insights = None
-
-    
-    paginator = QueryPagination()
-    page = paginator.paginate_queryset(rows, request)
-
-    return paginator.get_paginated_response(
-        {
-            "quesion": question,
-            "sql": sql,
-            "execution_time": execution_time,
-            "row_count": len(rows),
-            "chart": chart,
-            "insight": insights,
-            "data": page,
-        }
-    )
 
 @api_view(['POST'])
 def registraton_Api(request):
@@ -589,7 +650,9 @@ def list_db_connections(request):
     connections = DatabaseConnection.objects.filter(
         user=request.user
     ).order_by("-create_at")
-
+    print("Authenticated:", request.user.is_authenticated)
+    print("User ID:", request.user.id)
+    print("Username:", request.user)
     results = [
         {
             "id": connection.id,
@@ -609,3 +672,9 @@ def list_db_connections(request):
         "count": len(results),
         "connections": results,
     })
+
+    
+
+@login_required
+def Connect_database_ui(request):
+    return render(request,'connect_database.html')

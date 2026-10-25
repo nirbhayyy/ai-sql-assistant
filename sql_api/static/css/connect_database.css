@@ -1,0 +1,219 @@
+
+
+.connection-page {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 24px;
+}
+
+/* Main Card */
+
+.connection-card {
+    padding: 32px;
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 16px;
+    background: var(--card-bg, #ffffff);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+.connection-header h1 {
+    margin: 0 0 12px;
+    font-size: 28px;
+}
+
+.connection-header p {
+    margin: 0 0 28px;
+    color: var(--muted-color, #6b7280);
+    line-height: 1.7;
+}
+
+/* Form Layout */
+
+.connection-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border: 1px solid var(--border-color, #d1d5db);
+    border-radius: 8px;
+    background: var(--input-bg, #ffffff);
+    color: inherit;
+    font: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+/* Action Buttons */
+
+.connection-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 26px;
+}
+
+.connection-actions button,
+.connection-actions a {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font: inherit;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s, opacity 0.2s;
+}
+
+.primary-button {
+    border: 1px solid #4f46e5;
+    background: #4f46e5;
+    color: #ffffff;
+}
+
+.primary-button:hover {
+    background: #4338ca;
+}
+
+.secondary-button {
+    border: 1px solid var(--border-color, #d1d5db);
+    background: transparent;
+    color: inherit;
+}
+
+.secondary-button:hover {
+    background: rgba(127, 127, 127, 0.08);
+}
+
+.connection-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Status Messages */
+
+.connection-message {
+    display: none;
+    margin-top: 20px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.connection-message.success {
+    display: block;
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.connection-message.error {
+    display: block;
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* Security Note */
+
+.connection-note {
+    margin-top: 22px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--muted-color, #6b7280);
+}
+
+/* Saved Connections */
+
+.saved-connections {
+    margin-top: 36px;
+}
+
+.saved-connections h2 {
+    margin-bottom: 16px;
+    font-size: 22px;
+}
+
+.saved-connection {
+    margin-top: 12px;
+    padding: 18px;
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 10px;
+    background: var(--card-bg, #ffffff);
+    overflow-wrap: anywhere;
+}
+
+.saved-connection h3 {
+    margin: 0 0 12px;
+    font-size: 17px;
+}
+
+.saved-connection p {
+    margin: 6px 0;
+    font-size: 14px;
+}
+
+/* Responsive Design */
+
+@media (max-width: 600px) {
+    .connection-page {
+        margin: 16px auto;
+        padding: 12px;
+    }
+
+    .connection-card {
+        padding: 20px;
+    }
+
+    .connection-header h1 {
+        font-size: 24px;
+    }
+
+    .connection-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group.full-width {
+        grid-column: auto;
+    }
+
+    .connection-actions {
+        flex-direction: column;
+    }
+
+    .connection-actions button,
+    .connection-actions a {
+        width: 100%;
+    }
+}

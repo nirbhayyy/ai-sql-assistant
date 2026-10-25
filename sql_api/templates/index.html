@@ -1,3 +1,4 @@
+
 {% load static %}
 <!doctype html>
 <html lang="en">
@@ -78,7 +79,11 @@
             </div>
           </section>
 
-          <section class="rail-section" aria-labelledby="history-heading" id="history-section">
+          <section
+            class="rail-section"
+            aria-labelledby="history-heading"
+            id="history-section"
+          >
             <h2 id="history-heading">Recent queries</h2>
 
             <ul id="history-list" class="history-list">
@@ -89,6 +94,21 @@
 
         <!-- ================= MAIN ================= -->
         <main class="main">
+
+          <!-- ADDED: DATABASE CONNECTION SELECTOR -->
+          <section class="panel connection-panel">
+            <label for="connection-select">Select database</label>
+
+            <select id="connection-select" required>
+              <option value="">Loading saved connections...</option>
+            </select>
+
+            <p id="connection-status" aria-live="polite">
+              Choose a saved database before running a query.
+            </p>
+          </section>
+          <!-- END ADDED SECTION -->
+
           <!-- ASK FORM -->
           <form id="ask-form" class="ask-form">
             {% csrf_token %}
@@ -161,7 +181,12 @@
           </div>
 
           <!-- AI INSIGHT -->
-          <section id="insight-panel" class="panel insight" aria-labelledby="insight-heading" hidden>
+          <section
+            id="insight-panel"
+            class="panel insight"
+            aria-labelledby="insight-heading"
+            hidden
+          >
             <div class="panel-head">
               <h3 id="insight-heading">AI Insight</h3>
             </div>
@@ -190,7 +215,12 @@
           </section>
 
           <!-- RESULTS TABLE -->
-          <section id="results-panel" class="panel" aria-labelledby="results-heading" hidden>
+          <section
+            id="results-panel"
+            class="panel"
+            aria-labelledby="results-heading"
+            hidden
+          >
             <div class="panel-head">
               <h3 id="results-heading">Results</h3>
               <button id="export-csv" class="text-btn" type="button">Export CSV</button>
@@ -208,18 +238,24 @@
           <!-- EMPTY STATE -->
           <div id="empty-state" class="empty-state">
             <p class="empty-title">Ask a question to begin</p>
-            <p class="empty-sub">Pick an example on the left or type your own question above.</p>
+            <p class="empty-sub">
+              Pick an example on the left or type your own question above.
+            </p>
           </div>
         </main>
       </div>
     </div>
 
     <!-- ================= SCRIPTS ================= -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="{% static 'js/chartt.js' %}"></script>
-    <script src="{% static 'js/app.js' %}"></script>
-    <script src="{% static 'js/auth.js' %}" defer></script>
-    <script src="{% static 'js/account.js' %}" defer></script>
-    <script src="{% static 'js/api.js' %}" defer></script>
-  </body>
+   
+<!-- ================= SCRIPTS ================= -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/api.js' %}"></script>
+<script src="{% static 'js/chartt.js' %}"></script>
+<script src="{% static 'js/app.js' %}"></script>
+<script src="{% static 'js/auth.js' %}" defer></script>
+<script src="{% static 'js/account.js' %}" defer></script>
+</body>
 </html>
+
+  

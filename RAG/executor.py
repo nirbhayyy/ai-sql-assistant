@@ -62,7 +62,7 @@ def is_safe_query(sql: str):
     return True
 
 
-def execuute_sql(sql:str):
+def execuute_sql(sql:str,engine):
     if not is_safe_query(sql):
         raise ValueError('Only SELECT queries are allowed.')
     start=time.time()
