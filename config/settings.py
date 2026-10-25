@@ -13,22 +13,35 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 from pathlib import Path
 import os 
 from dotenv import load_dotenv
-load_dotenv()
+
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+load_dotenv(BASE_DIR / ".env")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-fwc82s&%ph1w)u^dpm5$i20gjqc6g*6-0en+_exk8dknb%knhh'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+
+if not SECRET_KEY:
+    raise ImproperlyConfigured(
+        "DJANGO_SECRET_KEY must be configured in the environment."
+    )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in (
+    "true", "1", "yes"
+)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [host.strip()
+    for host in os.getenv(
+        "DJANGO_ALLOWED_HOSTS",
+        "localhost,127.0.0.1",
+    ).split(",")
+    if host.strip()]
 
 
 # Application definition
