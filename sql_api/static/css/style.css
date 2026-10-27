@@ -718,9 +718,19 @@ th.num { text-align: right; }
 
 .connection-panel select option { background: var(--panel); color: var(--ink); }
 
-/* Status line sits under the dropdown, aligned with it */
-#connection-status {
+/* Status on the left, link to the connections page on the right */
+.connection-meta {
     grid-column: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+a.text-btn { display: inline-block; text-decoration: none; }
+
+#connection-status {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -789,8 +799,11 @@ th.num { text-align: right; }
 }
 
 @media (max-width: 560px) {
+    /* the account button wraps to the left edge, so open its menu rightwards */
+    .account-dropdown { left: 0; right: auto; }
+
     .connection-panel { grid-template-columns: 1fr; }
-    #connection-status { grid-column: 1; }
+    .connection-meta { grid-column: 1; }
 
     .header-inner { justify-content: flex-start; }
     .app { padding: 24px 16px 70px; }

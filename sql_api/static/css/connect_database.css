@@ -263,36 +263,132 @@ a:focus-visible,
 
 [hidden] { display: none !important; }
 
+/* Soft smoky green glow behind the page, fixed while scrolling */
+body {
+    min-height: 100vh;
+    background:
+        radial-gradient(ellipse 70% 45% at 12% -8%, rgba(24, 68, 42, .60), transparent 70%),
+        radial-gradient(ellipse 55% 45% at 100% 38%, rgba(69, 100, 74, .20), transparent 70%),
+        radial-gradient(ellipse 60% 40% at 30% 110%, rgba(24, 68, 42, .35), transparent 70%),
+        var(--bg);
+    background-attachment: fixed;
+}
+
 /* Header stays visible while scrolling, like the assistant page */
 .app-header {
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(10, 13, 9, .86);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
+    background: rgba(10, 13, 9, .72);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
 }
 
+/* ================= ACCOUNT MENU (same as the assistant page) ================= */
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* ================= ACCOUNT MENU ================= */
+
+.account-menu { position: relative; }
+
+.account-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 12px 5px 5px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-pill);
+    background: var(--panel);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color .12s ease, background .12s ease;
+}
+
+.account-toggle:hover,
+.account-toggle[aria-expanded="true"] { border-color: var(--accent); }
+
+.user-avatar {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--olive);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.caret { color: var(--muted); font-size: 11px; }
+
+.account-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 1000;
+    min-width: 180px;
+    padding: 6px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--panel);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, .5);
+    animation: pop .12s ease;
+}
+
+.account-dropdown a,
+.account-dropdown button {
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.account-dropdown a:hover,
+.account-dropdown button:hover { background: rgba(var(--accent-rgb), .14); }
+
+#logout-button { color: var(--danger); }
+#logout-button:hover { background: var(--danger-soft); }
+
 /* ================= PAGE INTRO ================= */
+
+.app { padding-top: 56px; }
 
 .connection-page {
     display: flex;
     flex-direction: column;
-    gap: 28px;
+    gap: 48px;
 }
 
 .connection-header h2 {
-    font-size: 26px;
+    font-size: 30px;
     font-weight: 800;
-    letter-spacing: -.02em;
+    letter-spacing: -.025em;
     color: var(--ink);
 }
 
 .connection-header p {
-    margin-top: 8px;
-    max-width: 62ch;
-    font-size: 14.5px;
-    line-height: 1.6;
+    margin-top: 12px;
+    max-width: 58ch;
+    font-size: 15px;
+    line-height: 1.7;
     color: var(--muted);
 }
 
@@ -300,40 +396,101 @@ a:focus-visible,
 .connection-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 300px;
-    gap: 24px;
+    gap: 32px;
     align-items: start;
 }
 
 /* ================= FORM CARD ================= */
 
 .connection-card {
-    background: var(--panel);
-    border: 1px solid var(--border);
+    background:
+        linear-gradient(180deg, rgba(24, 68, 42, .22), transparent 180px),
+        var(--panel);
+    border: 1px solid var(--border-strong);
     border-radius: var(--radius-md);
-    padding: 26px;
-    animation: rise .28s ease both;
+    padding: 40px 40px 36px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .35);
+    animation: rise .3s ease both;
 }
 
-.connection-card .panel-head { margin-bottom: 22px; }
+/* ----- steps ----- */
+
+.form-section {
+    border: 0;
+    min-width: 0;
+}
+
+.form-section + .form-section {
+    margin-top: 40px;
+    padding-top: 36px;
+    border-top: 1px solid var(--border);
+}
+
+.section-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0;
+    margin-bottom: 24px;
+    float: left;      /* keeps <legend> in normal flow inside the fieldset */
+    width: 100%;
+}
+
+.section-head + * { clear: both; }
+
+.section-num {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid rgba(var(--accent-rgb), .45);
+    background: rgba(var(--accent-rgb), .08);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.section-title {
+    display: block;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    color: var(--ink);
+}
+
+.section-desc {
+    display: block;
+    margin-top: 3px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+/* ----- fields ----- */
 
 .connection-form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px 20px;
+    gap: 24px 24px;
 }
+
+/* Host takes the wide column, Port the narrow one */
+.connection-form-grid.grid-server { grid-template-columns: minmax(0, 1fr) 160px; }
 
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
 }
 
 .form-group.full-width { grid-column: 1 / -1; }
 
 .form-group label {
-    font-size: 11.5px;
+    font-size: 12px;
     font-weight: 700;
-    letter-spacing: .03em;
+    letter-spacing: .04em;
     text-transform: uppercase;
     color: var(--muted);
 }
@@ -341,18 +498,19 @@ a:focus-visible,
 .form-group input,
 .form-group select {
     width: 100%;
-    background: var(--bg);
+    min-height: 50px;
+    background: rgba(10, 13, 9, .7);
     color: var(--ink);
     border: 1px solid var(--border-strong);
     border-radius: var(--radius-sm);
-    padding: 12px 14px;
-    font-size: 14px;
+    padding: 13px 16px;
+    font-size: 14.5px;
     font-family: var(--sans);
-    transition: border-color .15s ease, box-shadow .15s ease;
+    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
 }
 
 .form-group input::placeholder {
-    color: rgba(243, 237, 227, .35);
+    color: rgba(243, 237, 227, .32);
     font-style: italic;
 }
 
@@ -364,10 +522,10 @@ a:focus-visible,
     -webkit-appearance: none;
     background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
                       linear-gradient(135deg, var(--muted) 50%, transparent 50%);
-    background-position: calc(100% - 20px) center, calc(100% - 15px) center;
+    background-position: calc(100% - 22px) center, calc(100% - 17px) center;
     background-size: 5px 5px, 5px 5px;
     background-repeat: no-repeat;
-    padding-right: 38px;
+    padding-right: 40px;
     cursor: pointer;
 }
 
@@ -379,6 +537,7 @@ a:focus-visible,
 .form-group input:focus,
 .form-group select:focus {
     outline: none;
+    background: var(--bg);
     border-color: var(--accent);
     box-shadow: 0 0 0 4px rgba(var(--accent-rgb), .10);
 }
@@ -399,8 +558,8 @@ a:focus-visible,
 
 /* Empty until the script writes a result */
 .connection-message {
-    margin-top: 20px;
-    padding: 12px 14px;
+    margin-top: 32px;
+    padding: 14px 16px;
     border-radius: var(--radius-sm);
     font-size: 13.5px;
     font-weight: 600;
@@ -428,8 +587,8 @@ a:focus-visible,
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-top: 24px;
-    padding-top: 20px;
+    margin-top: 40px;
+    padding-top: 28px;
     border-top: 1px solid var(--border);
 }
 
@@ -437,8 +596,8 @@ a:focus-visible,
 .secondary-button {
     display: inline-block;
     border-radius: var(--radius-pill);
-    padding: 11px 24px;
-    font-size: 13.5px;
+    padding: 13px 28px;
+    font-size: 14px;
     font-weight: 700;
     font-family: var(--sans);
     text-align: center;
@@ -478,16 +637,18 @@ a:focus-visible,
 /* ================= SIDE NOTE ================= */
 
 .connection-note {
-    background: var(--panel);
+    position: sticky;
+    top: 104px;
+    background: rgba(20, 23, 15, .8);
     border: 1px solid var(--border);
     border-left: 3px solid var(--accent);
     border-radius: var(--radius-md);
-    padding: 22px 22px 20px;
-    animation: rise .28s ease .05s both;
+    padding: 26px 26px 24px;
+    animation: rise .3s ease .05s both;
 }
 
 .connection-note h3 {
-    margin-bottom: 14px;
+    margin-bottom: 18px;
     font-size: 12.5px;
     font-weight: 700;
     letter-spacing: .02em;
@@ -499,14 +660,14 @@ a:focus-visible,
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 18px;
 }
 
 .connection-note li {
     position: relative;
-    padding-left: 18px;
+    padding-left: 20px;
     font-size: 13.5px;
-    line-height: 1.6;
+    line-height: 1.65;
     color: var(--ink);
 }
 
@@ -514,7 +675,7 @@ a:focus-visible,
     content: "";
     position: absolute;
     left: 0;
-    top: .6em;
+    top: .65em;
     width: 6px;
     height: 6px;
     border-radius: 50%;
@@ -531,13 +692,13 @@ a:focus-visible,
     letter-spacing: .02em;
     text-transform: uppercase;
     color: var(--muted);
-    margin-bottom: 14px;
+    margin-bottom: 18px;
 }
 
 #saved-connections-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 18px;
     font-size: 13.5px;
     color: var(--muted);
 }
@@ -545,10 +706,10 @@ a:focus-visible,
 .saved-connection {
     position: relative;
     overflow: hidden;
-    background: var(--panel);
+    background: rgba(20, 23, 15, .85);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    padding: 20px 20px 20px;
+    padding: 24px;
     transition: border-color .12s ease, transform .12s ease;
     animation: rise .28s ease both;
 }
@@ -572,7 +733,7 @@ a:focus-visible,
     font-size: 15px;
     font-weight: 700;
     color: var(--ink);
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     overflow-wrap: anywhere;
 }
 
@@ -580,11 +741,16 @@ a:focus-visible,
     font-size: 12.5px;
     font-family: var(--mono);
     color: var(--muted);
-    line-height: 1.7;
+    line-height: 1.8;
     overflow-wrap: anywhere;
 }
 
 /* ================= ANIMATION ================= */
+
+@keyframes pop {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: none; }
+}
 
 @keyframes rise {
     from { opacity: 0; transform: translateY(8px); }
@@ -604,26 +770,34 @@ a:focus-visible,
     .connection-layout { grid-template-columns: 1fr; }
 
     /* guidance reads better before the form is submitted */
-    .connection-note { order: -1; }
+    .connection-note { order: -1; position: static; }
 
     .app-header { position: static; }
 }
 
 @media (max-width: 600px) {
-    .app { padding: 24px 16px 70px; }
+    /* the account button wraps to the left edge, so open its menu rightwards */
+    .account-dropdown { left: 0; right: auto; }
+
+    .app { padding: 32px 16px 70px; }
 
     .header-inner { justify-content: flex-start; }
 
-    .connection-card { padding: 20px; }
+    .connection-page { gap: 36px; }
 
-    .connection-form-grid { grid-template-columns: 1fr; }
+    .connection-header h2 { font-size: 25px; }
+
+    .connection-card { padding: 26px 20px 24px; }
+
+    .connection-form-grid,
+    .connection-form-grid.grid-server { grid-template-columns: 1fr; gap: 20px; }
 
     .form-group.full-width { grid-column: auto; }
+
+    .form-section + .form-section { margin-top: 32px; padding-top: 28px; }
 
     .connection-actions { flex-wrap: wrap; }
 
     .connection-actions .primary-button,
     .connection-actions .secondary-button { flex: 1 1 100%; }
-
-    .connection-header h2 { font-size: 23px; }
 }

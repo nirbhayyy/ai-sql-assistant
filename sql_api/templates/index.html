@@ -36,8 +36,9 @@
 
         <div class="header-actions">
           <nav class="top-nav" aria-label="Pages">
-            <a class="nav-btn active" href="#" aria-current="page">Assistant</a>
+            <a class="nav-btn active" href="/api/" aria-current="page">Assistant</a>
             <a class="nav-btn" href="/api/dash/">Dashboard</a>
+            <a class="nav-btn" href="/api/db-conn-ui/">Connections</a>
           </nav>
 
           <div class="account-menu">
@@ -102,9 +103,13 @@
               <option value="">Loading saved connections...</option>
             </select>
 
-            <p id="connection-status" aria-live="polite">
-              Choose a saved database before running a query.
-            </p>
+            <div class="connection-meta">
+              <p id="connection-status" aria-live="polite">
+                Choose a saved database before running a query.
+              </p>
+
+              <a class="text-btn" href="/api/connect-database/">Manage connections</a>
+            </div>
           </section>
 
           <!-- ASK FORM -->
