@@ -358,28 +358,13 @@ html { scroll-behavior: smooth; }
 
 /* ================= LAYOUT ================= */
 
-.workbench {
-    display: grid;
-    grid-template-columns: 260px minmax(0, 1fr);
-    gap: 32px;
-    align-items: start;
-}
-
-.rail {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    position: sticky;
-    top: 96px;
-    max-height: calc(100vh - 120px);
-    overflow-y: auto;
-}
-
 .main {
     display: flex;
     flex-direction: column;
     gap: 18px;
     min-width: 0;
+    max-width: 860px;
+    margin: 0 auto;
 }
 
 /* Panels glide in when results arrive */
@@ -443,37 +428,53 @@ kbd {
 
 /* ================= SIDEBAR: CHIPS + HISTORY ================= */
 
-.rail-section h2 {
+.recent {
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    padding: 2px 0;
+}
+
+.recent h2 {
     font-size: 11.5px;
     font-weight: 700;
     letter-spacing: .03em;
     text-transform: uppercase;
     color: var(--muted);
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
+
+/* No history yet: hide the whole strip instead of showing an empty box */
+.recent:has(.empty-hint) { display: none; }
 
 .history-list {
     list-style: none;
     display: flex;
-    flex-direction: column;
-    gap: 2px;
-    max-height: 320px;
-    overflow-y: auto;
+    flex-direction: row;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
 }
+
+.history-list li { flex: none; }
 
 .history-item {
-    width: 100%;
-    border: none;
-    background: transparent;
-    padding: 9px 10px;
-    border-radius: var(--radius-sm);
+    max-width: 300px;
+    border: 1px solid var(--border-strong);
+    background: var(--panel);
+    padding: 8px 16px;
+    border-radius: var(--radius-pill);
     text-align: left;
     cursor: pointer;
-    transition: background .12s ease;
+    transition: background .12s ease, border-color .12s ease;
 }
 
-.history-item:hover,
-.history-item.active { background: rgba(var(--accent-rgb), .14); }
+.history-item:hover { border-color: var(--accent); }
+.history-item.active {
+    background: rgba(var(--accent-rgb), .14);
+    border-color: var(--accent);
+}
 
 .history-question {
     display: block;
@@ -485,7 +486,7 @@ kbd {
     text-overflow: ellipsis;
 }
 
-.rail-section.flash { animation: flash 1s ease; }
+.recent.flash { animation: flash 1s ease; }
 
 /* ================= SQL BLOCK ================= */
 
@@ -766,11 +767,6 @@ a.text-btn { display: inline-block; text-decoration: none; }
 /* ================= MOBILE ================= */
 
 @media (max-width: 900px) {
-    .workbench { grid-template-columns: 1fr; }
-
-    /* with no examples above it, recent queries read better below the ask box */
-    .rail { position: static; max-height: none; overflow: visible; order: 2; }
-
     .stats-row { grid-template-columns: 1fr; }
 
     .hint { display: none; }

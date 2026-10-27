@@ -65,25 +65,7 @@
     </header>
 
     <div class="app">
-      <div class="workbench">
-        <!-- ================= SIDEBAR ================= -->
-        <aside class="rail" aria-label="Recent queries">
-          <section
-            class="rail-section"
-            aria-labelledby="history-heading"
-            id="history-section"
-          >
-            <h2 id="history-heading">Recent queries</h2>
-
-            <ul id="history-list" class="history-list">
-              <li class="empty-hint">Recent queries will appear here.</li>
-            </ul>
-          </section>
-        </aside>
-
-        <!-- ================= MAIN ================= -->
         <main class="main">
-
           <!-- DATABASE CONNECTION SELECTOR -->
           <section class="panel connection-panel" aria-label="Database connection">
             <label for="connection-select">Database</label>
@@ -129,6 +111,15 @@
               </button>
             </div>
           </form>
+
+          <!-- RECENT QUERIES (this database) -->
+          <section class="recent" aria-labelledby="history-heading" id="history-section">
+            <h2 id="history-heading">Recent queries</h2>
+
+            <ul id="history-list" class="history-list">
+              <li class="empty-hint">Recent queries will appear here.</li>
+            </ul>
+          </section>
 
           <!-- ERROR -->
           <section
@@ -235,7 +226,6 @@
             </p>
           </div>
         </main>
-      </div>
     </div>
 
     <!-- ================= SCRIPTS ================= -->
