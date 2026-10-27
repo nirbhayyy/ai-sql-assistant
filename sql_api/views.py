@@ -678,3 +678,8 @@ def list_db_connections(request):
 @login_required
 def Connect_database_ui(request):
     return render(request,'connect_database.html')
+
+
+@login_required
+def History_page(request):
+    return render(request,'history.html')

@@ -452,27 +452,6 @@ kbd {
     margin-bottom: 12px;
 }
 
-.chip-list { display: flex; flex-direction: column; gap: 8px; }
-
-.chip {
-    border: none;
-    border-radius: var(--radius-pill);
-    padding: 10px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    font-family: var(--sans);
-    cursor: pointer;
-    text-align: left;
-    transition: filter .12s ease, transform .08s ease;
-}
-
-.chip:hover { filter: brightness(1.18); transform: translateX(2px); }
-
-.chip:nth-child(4n+1) { background: var(--tag-1-bg); color: var(--ink); }
-.chip:nth-child(4n+2) { background: var(--tag-2-bg); color: var(--ink); }
-.chip:nth-child(4n+3) { background: var(--tag-3-bg); color: var(--bg); }
-.chip:nth-child(4n+4) { background: var(--tag-4-bg); color: var(--bg); }
-
 .history-list {
     list-style: none;
     display: flex;
@@ -789,7 +768,8 @@ a.text-btn { display: inline-block; text-decoration: none; }
 @media (max-width: 900px) {
     .workbench { grid-template-columns: 1fr; }
 
-    .rail { position: static; max-height: none; overflow: visible; }
+    /* with no examples above it, recent queries read better below the ask box */
+    .rail { position: static; max-height: none; overflow: visible; order: 2; }
 
     .stats-row { grid-template-columns: 1fr; }
 

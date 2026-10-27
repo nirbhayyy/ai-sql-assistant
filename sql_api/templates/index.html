@@ -38,7 +38,7 @@
           <nav class="top-nav" aria-label="Pages">
             <a class="nav-btn active" href="/api/" aria-current="page">Assistant</a>
             <a class="nav-btn" href="/api/dash/">Dashboard</a>
-            <a class="nav-btn" href="/api/db-conn-ui/">Connections</a>
+            <a class="nav-btn" href="/api/connect-database/">Connections</a>
           </nav>
 
           <div class="account-menu">
@@ -67,18 +67,7 @@
     <div class="app">
       <div class="workbench">
         <!-- ================= SIDEBAR ================= -->
-        <aside class="rail" aria-label="Example queries and history">
-          <section class="rail-section" aria-labelledby="examples-heading">
-            <h2 id="examples-heading">Try an example</h2>
-
-            <div class="chip-list" id="examples">
-              <button class="chip" type="button">Count customers in each city</button>
-              <button class="chip" type="button">Show customer registrations by year</button>
-              <button class="chip" type="button">Show customer distribution by city</button>
-              <button class="chip" type="button">How many customers are there?</button>
-            </div>
-          </section>
-
+        <aside class="rail" aria-label="Recent queries">
           <section
             class="rail-section"
             aria-labelledby="history-heading"
@@ -123,7 +112,7 @@
             <textarea
               id="question"
               rows="1"
-              placeholder="e.g. Count customers in each city"
+              placeholder="e.g. How many records are in each table?"
               autocomplete="off"
               spellcheck="false"
             ></textarea>
@@ -242,7 +231,7 @@
           <div id="empty-state" class="empty-state">
             <p class="empty-title">Ask a question to begin</p>
             <p class="empty-sub">
-              Pick an example on the left or type your own question above.
+              Type your question above, or reuse one from your recent queries.
             </p>
           </div>
         </main>

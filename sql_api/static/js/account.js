@@ -57,10 +57,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Query history: app.js scrolls to and highlights the sidebar history
     const historyLink = document.getElementById("history-link");
     if (historyLink) {
-        historyLink.addEventListener("click", event => {
-            event.preventDefault();
-            setOpen(false);
-            document.dispatchEvent(new CustomEvent("open-query-history"));
-        });
-    }
+    historyLink.addEventListener("click", () => {
+        setOpen(false);
+    });
+}
 });

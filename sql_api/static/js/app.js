@@ -41,7 +41,7 @@
 
     const historyList = $("history-list");
     const historySection = $("history-section");
-    const chips = $("examples");
+    const connectionStatus = $("connection-status");
     const exportCsv = $("export-csv");
 
     let currentQuestion = "";
@@ -50,6 +50,7 @@
     let currentRows = [];
     let requestId = 0;
     let currentConnectionId = null;
+    let historyRequest = 0;    // ignores history responses from a previous database
 
     // ---------- CSRF ----------
     function getCSRFToken() {
@@ -183,13 +184,32 @@
     async function loadHistory() {
         if (!historyList) return;
 
+        const thisRequest = ++historyRequest;
+        const connectionId = connectionSelect ? connectionSelect.value : "";
+
         try {
-            const response = await APIClient.fetch("/api/history/");
+            const url = connectionId
+                ? `/api/history/?connection_id=${encodeURIComponent(connectionId)}`
+                : "/api/history/";
+
+            const response = await APIClient.fetch(url);
 
             if (!response.ok) throw new Error("Could not load query history.");
 
             const data = await response.json();
-            const items = Array.isArray(data) ? data : data.results;
+            let items = Array.isArray(data) ? data : data.results;
+
+            // A newer request (another database was selected) has started.
+            if (thisRequest !== historyRequest) return;
+
+            // When the API says which database each query ran on, only show
+            // the selected database's queries.
+            if (connectionId && Array.isArray(items) &&
+                items.some(item => "connection_id" in item)) {
+                items = items.filter(
+                    item => String(item.connection_id) === String(connectionId)
+                );
+            }
 
             historyList.innerHTML = "";
 
@@ -253,6 +273,43 @@
     // ---------- MAIN API ----------
     
     // ---------- DATABASE CONNECTIONS ----------
+    function setConnectionStatus(message, type = "") {
+        if (!connectionStatus) return;
+        connectionStatus.textContent = message;
+        connectionStatus.className = type;
+    }
+
+    function selectedConnectionLabel() {
+        const option = connectionSelect && connectionSelect.selectedOptions[0];
+        return option && connectionSelect.value ? option.textContent : "";
+    }
+
+    // Runs on page load and whenever the database is changed.
+    function onConnectionChange() {
+        const connectionId = connectionSelect ? connectionSelect.value : "";
+        const label = selectedConnectionLabel();
+
+        requestId++;                        // drop any in-flight result from the old database
+        currentConnectionId = connectionId || null;
+        currentPage = 1;
+        totalPages = 1;
+        currentRows = [];
+        currentQuestion = "";
+
+        resetUI();
+        setLoading(false);
+        if (tableContainer) tableContainer.innerHTML = "";
+        show(emptyState);
+
+        if (connectionId) {
+            setConnectionStatus(`Connected to ${label}`, "success");
+        } else {
+            setConnectionStatus("Choose a saved database before running a query.");
+        }
+
+        loadHistory();
+    }
+
     async function loadConnections() {
         if (!connectionSelect) return;
 
@@ -269,6 +326,8 @@
                 connectionSelect.add(
                     new Option("No saved databases found", "")
                 );
+                setConnectionStatus("Add a database in Connections to get started.");
+                onConnectionChange();
                 return;
             }
 
@@ -283,6 +342,7 @@
 
             // Select the first saved connection by default.
             connectionSelect.selectedIndex = 0;
+            onConnectionChange();
         } catch (error) {
             console.error("Connection loading error:", error);
 
@@ -291,6 +351,8 @@
                 new Option("Could not load databases", "")
             );
 
+            onConnectionChange();
+            setConnectionStatus("Could not load your saved databases.", "error");
             showError(error.message || "Could not load saved databases.");
         } finally {
             connectionSelect.disabled = false;
@@ -487,23 +549,6 @@ currentQuestion = queryText;
         });
     }
 
-    // ---------- EXAMPLE CHIPS ----------
-    if (chips) {
-        chips.addEventListener("click", event => {
-            const chip = event.target.closest(".chip");
-            if (!chip) return;
-
-            const text = chip.textContent.trim();
-
-            if (question) {
-                question.value = text;
-                autoGrow();
-            }
-
-            runQuery(text, 1);
-        });
-    }
-
     // ---------- "Query history" in the account menu ----------
     document.addEventListener("open-query-history", () => {
         if (!historySection) return;
@@ -513,8 +558,12 @@ currentQuestion = queryText;
         historySection.classList.add("flash");
     });
 
+    // ---------- DATABASE SWITCH ----------
+    if (connectionSelect) {
+        connectionSelect.addEventListener("change", onConnectionChange);
+    }
+
     // ---------- INITIALIZE ----------
     autoGrow();
-    loadConnections();
-    loadHistory();
+    loadConnections();   // also loads history for the selected database
 })();

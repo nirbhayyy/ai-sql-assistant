@@ -1,0 +1,111 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Review your previous questions and the SQL the AI SQL Assistant generated for them."
+    />
+
+    <title>Query History | AI SQL Assistant</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- history.css includes the shared design system, so style.css is not needed here -->
+    <link rel="stylesheet" href="{% static 'css/history.css' %}" />
+  </head>
+
+  <body>
+    <!-- ================= HEADER ================= -->
+    <header class="app-header">
+      <div class="header-inner">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">SQL</span>
+          <div>
+            <h1>AI SQL Assistant</h1>
+            <p>Ask questions in plain English</p>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <nav class="top-nav" aria-label="Pages">
+            {% comment %} <a class="nav-btn" href="/api/">Assistant</a> {% endcomment %}
+            <a class="nav-btn" href="/api/dash/">Dashboard</a>
+            <a class="nav-btn" href="/api/connect-database/">Connections</a>
+          </nav>
+
+          <div class="account-menu">
+            <button
+              type="button"
+              id="account-toggle"
+              class="account-toggle"
+              aria-expanded="false"
+              aria-controls="account-dropdown"
+              aria-haspopup="true"
+            >
+              <span class="user-avatar" id="user-avatar" aria-hidden="true">U</span>
+              <span id="navbar-username">Loading…</span>
+              <span class="caret" aria-hidden="true">▾</span>
+            </button>
+
+            <div id="account-dropdown" class="account-dropdown" hidden>
+              <a href="/api/">Back to Assistant</a>
+              <button type="button" id="logout-button">Logout</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="app">
+      <main class="history-page">
+        <!-- ================= INTRO ================= -->
+        <header class="history-header">
+          <div>
+            <h2>Query history</h2>
+            <p>Review your previous questions and the SQL generated for them.</p>
+          </div>
+
+          <a href="/api/" class="history-back-button">Back to Assistant</a>
+        </header>
+
+        <!-- ================= TOOLBAR ================= -->
+        <section class="history-toolbar" aria-label="Search and refresh">
+          <input
+            type="search"
+            id="history-search"
+            placeholder="Search your query history..."
+            aria-label="Search query history"
+            autocomplete="off"
+          />
+
+          <button type="button" id="refresh-history">Refresh</button>
+          <button type="button" id="clear-history" disabled>Clear history</button>
+
+          {% csrf_token %}
+        </section>
+
+        <!-- ================= LIST ================= -->
+        <section class="history-content" aria-label="Previous queries">
+          <div id="history-status" role="status" aria-live="polite">
+            Loading your history...
+          </div>
+
+          <div id="history-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="{% static 'js/api.js' %}"></script>
+    <script src="{% static 'js/history.js' %}"></script>
+    <script src="{% static 'js/auth.js' %}" defer></script>
+    <script src="{% static 'js/account.js' %}" defer></script>
+  </body>
+</html>
