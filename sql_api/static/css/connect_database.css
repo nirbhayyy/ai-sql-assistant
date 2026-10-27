@@ -1,32 +1,15 @@
 /* =========================
-   AI SQL Connections — connection.css (database connection page)
+   AI SQL Assistant — connect_database.css (database connection page)
    Pairs with style.css and dashboard.css: same shared design system,
-   different page.
+   different page. Self-contained, so style.css is not needed here.
    Palette: Everest / Olive / Sand / Off White.
 ========================= */
 
-/* ===== SHARED DESIGN SYSTEM — identical in style.css, dashboard.css and connection.css. Edit all three together. ===== */
+/* ===== SHARED DESIGN SYSTEM — identical in style.css, dashboard.css and this file. Edit all together. ===== */
 
-/* =========================
-   Palette (from the reference image):
-     --everest:  #18442A  (darkest green)
-     --olive:    #45644A
-     --sand:     #E4D8B4  (warm accent — used wherever the old
-                           "brightest swatch" accent used to go)
-     --offwhite: #F3EDE3  (lightest — doubles as body text color)
-   Page background is darker than any swatch; panels use a neutral
-   dark tone that isn't one of the four, so tag pills stay legible
-   against it.
-========================= */
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-
     /* the four reference swatches */
     --everest: #18442A;
     --olive: #45644A;
@@ -54,12 +37,10 @@
     --mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
     --sans: 'Inter', system-ui, sans-serif;
 
-    /* tags cycle through the four reference swatches directly */
     --tag-1-bg: var(--everest);
     --tag-2-bg: var(--olive);
     --tag-3-bg: var(--sand);
     --tag-4-bg: var(--offwhite);
-
 }
 
 body {
@@ -83,93 +64,60 @@ body {
     border: 0;
 }
 
-/* ================= HEADER =================
-   Brand on the left, page switcher on the right. */
+/* HEADER */
 
 .app-header {
-
     background: var(--bg);
     padding: 18px 0;
     border-bottom: 1px solid var(--border);
-
 }
 
-/* Same 1180px column and 24px side padding as .app, so the logo
-   lines up with the content underneath it. */
-
 .header-inner {
-
     max-width: 1180px;
     margin: 0 auto;
     padding: 0 24px;
-
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
     flex-wrap: wrap;
-
 }
 
-.brand {
-
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
-}
+.brand { display: flex; align-items: center; gap: 12px; }
 
 .brand-mark {
-
     width: 36px;
     height: 36px;
-
     display: grid;
     place-items: center;
-
     border-radius: 10px;
     background: var(--accent);
     color: var(--bg);
-
     font-family: var(--sans);
     font-weight: 800;
     font-size: 12px;
     letter-spacing: .02em;
-
 }
 
 .brand h1 {
-
     font-size: 19px;
     font-weight: 800;
     letter-spacing: -.02em;
     color: var(--ink);
-
 }
 
-.brand p {
-
-    margin-top: 1px;
-    font-size: 13px;
-    color: var(--muted);
-
-}
-
-/* Page switcher — pill segmented control */
+.brand p { margin-top: 1px; font-size: 13px; color: var(--muted); }
 
 .top-nav {
-
     display: flex;
     gap: 4px;
     padding: 4px;
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: var(--radius-pill);
-
 }
 
 .nav-btn {
-
     padding: 8px 18px;
     border-radius: var(--radius-pill);
     font-size: 13px;
@@ -177,64 +125,44 @@ body {
     color: var(--muted);
     text-decoration: none;
     transition: background .12s ease, color .12s ease;
-
 }
 
 .nav-btn:hover { color: var(--ink); }
+.nav-btn.active { background: var(--accent); color: var(--bg); }
 
-.nav-btn.active {
+/* PAGE COLUMN */
 
-    background: var(--accent);
-    color: var(--bg);
+.app { max-width: 1180px; margin: 0 auto; padding: 36px 24px 90px; }
 
-}
-
-/* ================= PAGE COLUMN ================= */
-
-.app {
-
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 36px 24px 90px;
-
-}
-
-/* ================= CARDS ================= */
+/* CARDS */
 
 .rail-section,
 .panel {
-
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     padding: 20px;
-
 }
 
 .panel-head {
-
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 14px;
-
 }
 
 .panel-head h3 {
-
     font-size: 12.5px;
     font-weight: 700;
     letter-spacing: .02em;
     text-transform: uppercase;
     color: var(--muted);
-
 }
 
-/* ================= BUTTONS ================= */
+/* BUTTONS */
 
 .btn-primary,
 .btn-ghost {
-
     border: none;
     cursor: pointer;
     border-radius: var(--radius-pill);
@@ -243,32 +171,22 @@ body {
     font-weight: 700;
     font-family: var(--sans);
     transition: background .12s ease, transform .08s ease, opacity .12s ease;
-
 }
 
-.btn-primary {
-
-    background: var(--accent);
-    color: var(--bg);
-
-}
-
+.btn-primary { background: var(--accent); color: var(--bg); }
 .btn-primary:hover { filter: brightness(.92); }
 .btn-primary:active { transform: scale(.97); }
 .btn-primary:disabled { opacity: .45; cursor: progress; transform: none; }
 
 .btn-ghost {
-
     background: transparent;
     border: 1px solid var(--border-strong);
     color: var(--ink);
-
 }
 
 .btn-ghost:hover { background: rgba(var(--accent-rgb), .12); border-color: var(--accent); }
 
 .text-btn {
-
     background: none;
     color: var(--accent);
     cursor: pointer;
@@ -278,23 +196,15 @@ body {
     border-radius: var(--radius-pill);
     border: 1px solid var(--border-strong);
     transition: background .12s ease;
-
 }
 
 .text-btn:hover { background: rgba(var(--accent-rgb), .14); }
 
-/* ================= TABLES ================= */
+/* TABLES */
 
-table {
-
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13.5px;
-
-}
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 
 th {
-
     background: transparent;
     color: var(--muted);
     font-weight: 700;
@@ -304,52 +214,44 @@ th {
     padding: 10px 12px;
     text-align: left;
     border-bottom: 1px solid var(--border-strong);
-
 }
 
 td {
-
     padding: 10px 12px;
     border-bottom: 1px solid var(--border);
     font-family: var(--mono);
     color: var(--ink);
     white-space: nowrap;
-
 }
 
 tbody tr:hover { background: rgba(var(--accent-rgb), .10); }
 
-/* ================= MESSAGES ================= */
+/* MESSAGES */
 
 .error-box {
-
     background: var(--danger-soft);
     color: var(--danger);
     border-radius: var(--radius-sm);
     padding: 14px 16px;
     font-size: 13.5px;
-
 }
 
 .error-box strong { display: block; margin-bottom: 4px; }
 
 .empty-hint {
-
     color: var(--muted);
     font-size: 13px;
     line-height: 1.5;
     padding: 2px 10px;
-
 }
 
-/* ================= FOCUS ================= */
+/* FOCUS */
 
 button:focus-visible,
+a:focus-visible,
 .nav-btn:focus-visible {
-
     outline: 2px solid var(--accent);
     outline-offset: 2px;
-
 }
 
 /* ===== END SHARED DESIGN SYSTEM ===== */
@@ -359,246 +261,304 @@ button:focus-visible,
    the shared tokens and components above.
 ========================================================= */
 
+[hidden] { display: none !important; }
+
+/* Header stays visible while scrolling, like the assistant page */
+.app-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(10, 13, 9, .86);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+}
+
 /* ================= PAGE INTRO ================= */
 
 .connection-page {
-
     display: flex;
     flex-direction: column;
-    gap: 24px;
-
+    gap: 28px;
 }
 
-.connection-header h1 {
-
-    font-size: 22px;
+.connection-header h2 {
+    font-size: 26px;
     font-weight: 800;
     letter-spacing: -.02em;
     color: var(--ink);
-
 }
 
 .connection-header p {
-
-    margin-top: 6px;
-    font-size: 13.5px;
+    margin-top: 8px;
+    max-width: 62ch;
+    font-size: 14.5px;
+    line-height: 1.6;
     color: var(--muted);
+}
 
+/* Form on the left, guidance on the right */
+.connection-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 24px;
+    align-items: start;
 }
 
 /* ================= FORM CARD ================= */
 
 .connection-card {
-
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     padding: 26px;
-
+    animation: rise .28s ease both;
 }
 
+.connection-card .panel-head { margin-bottom: 22px; }
+
 .connection-form-grid {
-
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px 20px;
-
 }
 
 .form-group {
-
     display: flex;
     flex-direction: column;
     gap: 8px;
-
 }
 
-.form-group.full-width {
-
-    grid-column: 1 / -1;
-
-}
+.form-group.full-width { grid-column: 1 / -1; }
 
 .form-group label {
-
     font-size: 11.5px;
     font-weight: 700;
     letter-spacing: .03em;
     text-transform: uppercase;
     color: var(--muted);
-
 }
 
 .form-group input,
 .form-group select {
-
     width: 100%;
     background: var(--bg);
     color: var(--ink);
     border: 1px solid var(--border-strong);
     border-radius: var(--radius-sm);
-    padding: 11px 14px;
+    padding: 12px 14px;
     font-size: 14px;
     font-family: var(--sans);
-    transition: border-color .12s ease, box-shadow .12s ease;
-
+    transition: border-color .15s ease, box-shadow .15s ease;
 }
 
-.form-group input::placeholder { color: rgba(243, 237, 227, .35); font-style: italic; }
+.form-group input::placeholder {
+    color: rgba(243, 237, 227, .35);
+    font-style: italic;
+}
+
+.form-group input:hover,
+.form-group select:hover { border-color: rgba(243, 237, 227, .26); }
 
 .form-group select {
-
     appearance: none;
+    -webkit-appearance: none;
     background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
-                       linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+                      linear-gradient(135deg, var(--muted) 50%, transparent 50%);
     background-position: calc(100% - 20px) center, calc(100% - 15px) center;
     background-size: 5px 5px, 5px 5px;
     background-repeat: no-repeat;
+    padding-right: 38px;
     cursor: pointer;
-
 }
 
 .form-group select option {
-
     background: var(--panel);
     color: var(--ink);
-
 }
 
 .form-group input:focus,
 .form-group select:focus {
-
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 4px rgba(var(--accent-rgb), .12);
+    box-shadow: 0 0 0 4px rgba(var(--accent-rgb), .10);
+}
 
+/* Browser autofill stays on-palette */
+.form-group input:-webkit-autofill {
+    -webkit-text-fill-color: var(--ink);
+    box-shadow: 0 0 0 1000px var(--bg) inset;
+    caret-color: var(--ink);
+}
+
+/* Hide number spinners so Port matches the other fields */
+.form-group input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+.form-group input[type="number"]::-webkit-outer-spin-button,
+.form-group input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* ================= MESSAGE ================= */
+
+/* Empty until the script writes a result */
+.connection-message {
+    margin-top: 20px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.connection-message:empty { display: none; }
+
+.connection-message.success {
+    color: var(--offwhite);
+    background: rgba(69, 100, 74, .28);
+    border: 1px solid var(--olive);
+}
+
+.connection-message.error {
+    color: var(--danger);
+    background: var(--danger-soft);
+    border: 1px solid rgba(255, 107, 91, .3);
 }
 
 /* ================= ACTIONS ================= */
 
 .connection-actions {
-
-    grid-column: 1 / -1;
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-top: 4px;
-
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
 }
 
-.primary-button {
-
-    border: none;
-    cursor: pointer;
+.primary-button,
+.secondary-button {
+    display: inline-block;
     border-radius: var(--radius-pill);
     padding: 11px 24px;
     font-size: 13.5px;
     font-weight: 700;
     font-family: var(--sans);
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: filter .12s ease, transform .08s ease, opacity .12s ease,
+                background .12s ease, border-color .12s ease;
+}
+
+.primary-button {
+    border: none;
     background: var(--accent);
     color: var(--bg);
-    transition: filter .12s ease, transform .08s ease, opacity .12s ease;
-
 }
 
 .primary-button:hover { filter: brightness(.92); }
 .primary-button:active { transform: scale(.97); }
 
 .secondary-button {
-
     border: 1px solid var(--border-strong);
     background: transparent;
     color: var(--ink);
-    cursor: pointer;
-    border-radius: var(--radius-pill);
-    padding: 11px 22px;
-    font-size: 13.5px;
-    font-weight: 700;
-    font-family: var(--sans);
-    transition: background .12s ease, border-color .12s ease;
-
 }
 
-.secondary-button:hover { background: rgba(var(--accent-rgb), .12); border-color: var(--accent); }
+.secondary-button:hover {
+    background: rgba(var(--accent-rgb), .12);
+    border-color: var(--accent);
+}
 
 .connection-actions button:disabled {
-
     opacity: .45;
     cursor: progress;
     transform: none;
     filter: none;
-
 }
 
-/* ================= MESSAGE ================= */
-
-.connection-message {
-
-    min-height: 20px;
-    font-size: 13.5px;
-    font-weight: 600;
-
-}
-
-.connection-message.success {
-
-    color: var(--accent);
-
-}
-
-.connection-message.error {
-
-    color: var(--danger);
-
-}
-
-/* ================= NOTE ================= */
+/* ================= SIDE NOTE ================= */
 
 .connection-note {
-
-    font-size: 12.5px;
-    color: var(--muted);
-    line-height: 1.6;
-    border-top: 1px solid var(--border);
-    padding-top: 16px;
-    margin-top: 4px;
-
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-md);
+    padding: 22px 22px 20px;
+    animation: rise .28s ease .05s both;
 }
+
+.connection-note h3 {
+    margin-bottom: 14px;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.connection-note ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.connection-note li {
+    position: relative;
+    padding-left: 18px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink);
+}
+
+.connection-note li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: .6em;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+}
+
+.connection-note strong { color: var(--accent); font-weight: 700; }
 
 /* ================= SAVED CONNECTIONS ================= */
 
 .saved-connections h2 {
-
     font-size: 12.5px;
     font-weight: 700;
     letter-spacing: .02em;
     text-transform: uppercase;
     color: var(--muted);
     margin-bottom: 14px;
-
 }
 
 #saved-connections-list {
-
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 14px;
-
+    font-size: 13.5px;
+    color: var(--muted);
 }
 
 .saved-connection {
-
     position: relative;
     overflow: hidden;
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    padding: 18px 20px 20px;
+    padding: 20px 20px 20px;
+    transition: border-color .12s ease, transform .12s ease;
+    animation: rise .28s ease both;
+}
 
+.saved-connection:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
 }
 
 .saved-connection::before {
-
     content: "";
     position: absolute;
     top: 0;
@@ -606,47 +566,64 @@ button:focus-visible,
     right: 0;
     height: 2px;
     background: linear-gradient(90deg, var(--accent), transparent 80%);
-
 }
 
 .saved-connection h3 {
-
     font-size: 15px;
     font-weight: 700;
     color: var(--ink);
     margin-bottom: 8px;
-
+    overflow-wrap: anywhere;
 }
 
 .saved-connection p {
-
     font-size: 12.5px;
     font-family: var(--mono);
     color: var(--muted);
-    line-height: 1.6;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
 
+/* ================= ANIMATION ================= */
+
+@keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+    }
 }
 
 /* ================= MOBILE ================= */
 
+@media (max-width: 900px) {
+    .connection-layout { grid-template-columns: 1fr; }
+
+    /* guidance reads better before the form is submitted */
+    .connection-note { order: -1; }
+
+    .app-header { position: static; }
+}
+
 @media (max-width: 600px) {
+    .app { padding: 24px 16px 70px; }
 
-    .connection-form-grid {
+    .header-inner { justify-content: flex-start; }
 
-        grid-template-columns: 1fr;
+    .connection-card { padding: 20px; }
 
-    }
+    .connection-form-grid { grid-template-columns: 1fr; }
 
-    .form-group.full-width {
+    .form-group.full-width { grid-column: auto; }
 
-        grid-column: auto;
+    .connection-actions { flex-wrap: wrap; }
 
-    }
+    .connection-actions .primary-button,
+    .connection-actions .secondary-button { flex: 1 1 100%; }
 
-    .connection-actions {
-
-        flex-wrap: wrap;
-
-    }
-
+    .connection-header h2 { font-size: 23px; }
 }

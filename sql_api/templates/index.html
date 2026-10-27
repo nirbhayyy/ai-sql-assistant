@@ -1,4 +1,3 @@
-
 {% load static %}
 <!doctype html>
 <html lang="en">
@@ -95,9 +94,9 @@
         <!-- ================= MAIN ================= -->
         <main class="main">
 
-          <!-- ADDED: DATABASE CONNECTION SELECTOR -->
-          <section class="panel connection-panel">
-            <label for="connection-select">Select database</label>
+          <!-- DATABASE CONNECTION SELECTOR -->
+          <section class="panel connection-panel" aria-label="Database connection">
+            <label for="connection-select">Database</label>
 
             <select id="connection-select" required>
               <option value="">Loading saved connections...</option>
@@ -107,7 +106,6 @@
               Choose a saved database before running a query.
             </p>
           </section>
-          <!-- END ADDED SECTION -->
 
           <!-- ASK FORM -->
           <form id="ask-form" class="ask-form">
@@ -247,15 +245,11 @@
     </div>
 
     <!-- ================= SCRIPTS ================= -->
-   
-<!-- ================= SCRIPTS ================= -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{% static 'js/api.js' %}"></script>
-<script src="{% static 'js/chartt.js' %}"></script>
-<script src="{% static 'js/app.js' %}"></script>
-<script src="{% static 'js/auth.js' %}" defer></script>
-<script src="{% static 'js/account.js' %}" defer></script>
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'js/api.js' %}"></script>
+    <script src="{% static 'js/chartt.js' %}"></script>
+    <script src="{% static 'js/app.js' %}"></script>
+    <script src="{% static 'js/auth.js' %}" defer></script>
+    <script src="{% static 'js/account.js' %}" defer></script>
+  </body>
 </html>
-
-  
